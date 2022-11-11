@@ -2,8 +2,7 @@ package main
 
 import (
     "encoding/base64"
-    "encoding/json"
-    "database/mysql"
+    "database/sql"
     "net/http"
     "fmt"
 
@@ -11,27 +10,34 @@ import (
 )
 
 // db global info
-var DBname string = "auth"
-var DBuser string = "auth"
-var DBpass string = "auth123"
-var DBaddr stirng = "127.0.0.1"
-var DBport String = "3306"
+var DBname string = "auth";
+var DBuser string = "auth";
+var DBpass string = "auth123";
+var DBaddr string = "127.0.0.1";
+var DBport string = "3306";
 
 // db users table struct
 type UsersStruct struct {
-    id       int,
-    name     string,
-    email    string,
-    password string,
-    admin    string,
-    date     string
+    id       int;
+    name     string;
+    email    string;
+    password string;
+    admin    string;
+    date     string;
+}
+
+// JWT struct
+type JWTheader struct {
+    alg   string
+    typ   string
+}
+type JWTpayload struct {
+    name  string
+    email string
+    admin string
 }
 
 func main(){
-    // connect to db
-    dbConnstring := DBuser + ":" + DBpas + "@tcp(" + DBaddr + ":" + DBport + ")/" + DBname;
-    DBConn, err := mysql.Open("mysql", dbConnstring);
-
     // initialize routes
     routesInit();
 
@@ -65,8 +71,13 @@ func authRoute(w http.ResponseWriter, r *http.Request){
             email := r.FormValue("email");
             encodedPass := r.FormValue("password");
 
+            // connect to db
+            dbConnstring := DBuser + ":" + DBpass + "@tcp(" + DBaddr + ":" + DBport + ")/" + DBname;
+            DBConn, err := sql.Open("mysql", dbConnstring);
+            defer DBConn.Close();
+
             // query the users
-            dbQuery := "select name, email, password, admin from user where email='" + email + "'";
+            dbQuery := "select name, email, password, admin from users where email='" + email + "'";
             userQuery, err := DBConn.Query(dbQuery);
             if err != nil {
                 fmt.Print("Authentication err: ");
@@ -81,9 +92,10 @@ func authRoute(w http.ResponseWriter, r *http.Request){
 
             // ceck password
             if userStructQuery.password == encodedPass {
-                JWTtoken = JWTgenerator(userStructQuery.name, userStructQuery.email, userStructQuery.password, userStructQuery.admin);
+                JWTtoken := JWTgenerator(userStructQuery.name, userStructQuery.email, userStructQuery.admin);
                 // response
                 fmt.Println(JWTtoken);
+                base64Converter("decode", "cm9vdDEyMw==");
             } else {
                 http.Redirect(w, r, "/", http.StatusFound);
             }
@@ -105,8 +117,13 @@ func regRoute(w http.ResponseWriter, r *http.Request){
             password := r.FormValue("password"); // base64 encrypted on client side
 
             // connect to db
-            userUploadQuery = "insert user (name, email, password, admin) values ('" + name + "','" + email + "','" + password + "', false)";
-            _, err := dbConn.Query(userUploadQuery);
+            dbConnstring := DBuser + ":" + DBpass + "@tcp(" + DBaddr + ":" + DBport + ")/" + DBname;
+            DBConn, _ := sql.Open("mysql", dbConnstring);
+            defer DBConn.Close();
+
+            // connect to db
+            userUploadQuery := "insert users (name, email, password, admin) values ('" + name + "','" + email + "','" + password + "', false)";
+            _, err := DBConn.Query(userUploadQuery);
             if err != nil {
                 fmt.Print("Registration err: ");
                 fmt.Println(err);
@@ -119,24 +136,25 @@ func regRoute(w http.ResponseWriter, r *http.Request){
 }
 
 func base64Converter(action string, string string) string {
-    var returnString string;
+    returnString := "";
 
     switch(action){
-        case "decode":
-            // password         (ascii decimal arr)
-            decimalString, _ := base64.StdEncoding.DecodeString(encodedString);
-            // ascii dec arr => char arr
-            var decodedString string;
-            for nChar := 0; nChar < len(decimalString); nChar++ {
-                decodedString += string(decimalString[nChar]);
+        case "decode":/*   --RIVEDERE--
+            //                    (ascii decimal arr)
+            decimalString, err := base64.StdEncoding.DecodeString(string);
+            if err != nil {
+                fmt.Print("Base64 decode err: ");
+                fmt.Println(err);
             }
-
-            returnString = decodedString;
+            // ascii dec arr => char arr
+            decodedString := strings.Join(decimalString, "");
+            // return
+            returnString = decodedString;   */
             break;
 
         case "encode":
-            encodedString, _ := base64.StdEncoding.EncodeString(encodedString);
-
+            encodedString := base64.StdEncoding.EncodeToString([]byte(string));
+            // return
             returnString = encodedString;
             break;
 
@@ -160,11 +178,41 @@ func base64Converter(action string, string string) string {
 */
 func JWTgenerator(name string, email string, admin string) string {
     // create json element
-    header  := "{'alg':'HS256','typ':'JWT'}";
-    payload := "{'name':'" + name + "','email':'" + email + "','" + admin + "':'true'}";
+    jsonHeader  := []byte(`{"alg":"HS256", "typ":"JWT"}`);
+    jsonPayload := []byte(`{"name":"`+name+`", "email":"`+email+`", "admin":"`+admin+`"}`);
     secret  := "ziopera";
     // create finale JWT
-    JWTtoken := base64Converter("encode", header) + "." + base64Converter("encode", payload) + "." + secret;
+    encodedHeader := base64.StdEncoding.EncodeToString(jsonHeader);
+    encodedPayload := base64.StdEncoding.EncodeToString(jsonPayload);
+    encodedSecret := base64.StdEncoding.EncodeToString([]byte(secret));
+
+    var finalEncodedHeader string;
+    var finalEncodedPayload string;
+    var finalEncodedSecret string;
+
+    for a := 0; a < len(encodedHeader); a++ {
+        if string(encodedHeader[a]) != "=" {
+            finalEncodedHeader += string(encodedHeader[a]);
+        } else {
+            a = len(encodedHeader);
+        }
+    }
+    for b := 0; b < len(encodedPayload); b++ {
+        if string(encodedPayload[b]) != "=" {
+            finalEncodedPayload += string(encodedPayload[b]);
+        } else {
+            b = len(encodedPayload);
+        }
+    }
+    for c := 0; c < len(encodedSecret); c++ {
+        if string(encodedSecret[c]) != "=" {
+            finalEncodedSecret += string(encodedSecret[c]);
+        } else {
+            c = len(encodedSecret);
+        }
+    }
+
+    JWTtoken := finalEncodedHeader + "." + finalEncodedPayload + "." + finalEncodedSecret;
 
     return JWTtoken;
 }
