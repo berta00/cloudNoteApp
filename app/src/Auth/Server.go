@@ -2,6 +2,9 @@ package main
 
 import (
     "encoding/base64"
+    "crypto/base64"
+	"crypto/sha256"
+    "crypto/hmac"
     "database/sql"
     "math/rand"
     "net/http"
@@ -11,6 +14,11 @@ import (
 
     _ "github.com/go-sql-driver/mysql"
 )
+
+// ws global info
+var WSdomain string = "localhost";
+var WSport   string = "8080";
+var JWTseec  stirng = "psaioufhodfiuadsofl";
 
 // db global info
 var DBname string = "auth";
@@ -133,7 +141,7 @@ func regRoute(w http.ResponseWriter, r *http.Request){
                 fmt.Println(err1);
             }
             // insert query to db (new token)
-            newToken := SECRETgenerator(40);
+            newToken := TokenGenerator(40);
             tokenUploadQuery := "insert emailConf (name, email, token, sndDate, expDate, done) values ('" + name + "','" + email + "','" + newToken + "', current_timestamp(), current_timestamp() + INTERVAL 1 DAY, false);";
             _, err2 := DBConn.Query(tokenUploadQuery);
             if err2 != nil {
@@ -164,7 +172,7 @@ func emailCecked(w http.ResponseWriter, r *http.Request){
     defer DBConn.Close();
 
     // update query to db (token)
-    tokenDoneQuery := "update SET done=true where email='" + confEmail + "' and token='" + confToken + "';";
+    tokenDoneQuery := "update emailConf set done=true where email='" + confEmail + "' and token='" + confToken + "';";
     _, err := DBConn.Query(tokenDoneQuery);
     if err != nil {
         fmt.Print("Registration err: ");
@@ -173,10 +181,10 @@ func emailCecked(w http.ResponseWriter, r *http.Request){
 }
 
 func emailSender(name string, destinatioEmail string, token string){
-    emailLink := "/localhost/emailceck?email=" + destinatioEmail + "&tok=" + token;
+    emailLink := WSdomain + ":" + WSport + "/emailceck?email=" + destinatioEmail + "&tok=" + token;
     // email variable
     senderEmail := "soundclouddownloader00@gmail.com";
-    senderPass := "";
+    senderPass := "vyotmaamyfuhmoaf";
     reciverMail := []string{destinatioEmail};
     // host variable
     host := "smtp.gmail.com"
@@ -184,8 +192,8 @@ func emailSender(name string, destinatioEmail string, token string){
     address := host + ":" + port
     // message variable
     subject := "Subject: SoundCloud download service email verification";
-    body := "Hi " + name + ",\nclick <a href='" + emailLink + "'>here</a> to verify your email on the platform!";
-    message := []byte(subject+body);
+    body := "\nHi " + name + ",\n click here: " + emailLink + " to verify your email on the platform!";
+    message := []byte(subject + body);
 
     // auth in mail service
     auth := smtp.PlainAuth("", senderEmail, senderPass, host);
@@ -227,6 +235,29 @@ func base64Converter(action string, string string) string {
     return returnString;
 }
 
+func HS255Converter(action string, string string) string {
+    returnString := "";
+
+    switch(action){
+        case "decode":
+
+            break;
+        case "encode":
+            hasher := hmac.New(sha256.New, JWTseec);
+            _, err = hasher.Write(data);
+        	if err != nil {
+        		return "";
+            }
+        	r := hasher.Sum(nil);
+
+        	returnString = base64.RawURLEncoding.EncodeToString(r);;
+            break;
+
+        default:
+            returnString = "HS255Converter err: function action parameter";
+    }
+}
+
 /*  Json Web Token format
 
     Header:                 Payload:                              Secret:
@@ -242,16 +273,16 @@ func JWTgenerator(name string, email string, admin string) string {
     // create json element
     jsonHeader  := []byte(`{"alg":"HS256", "typ":"JWT"}`);
     jsonPayload := []byte(`{"name":"`+name+`", "email":"`+email+`", "admin":"`+admin+`"}`);
-    secret  := SECRETgenerator(20);
+    secret  := JWTseec;
 
     // create finale JWT
-    encodedHeader := base64.StdEncoding.EncodeToString(jsonHeader);
-    encodedPayload := base64.StdEncoding.EncodeToString(jsonPayload);
-    //encodedSecret := base64.StdEncoding.EncodeToString([]byte(secret));
+    encodedHeader := HS255Converter(jsonHeader);
+    encodedPayload := HS255Converter(jsonPayload);
+    encodedSecret := HS255Converter([]byte(secret));
 
     var finalEncodedHeader string;
     var finalEncodedPayload string;
-    //var finalEncodedSecret string;
+    var finalEncodedSecret string;
 
     for a := 0; a < len(encodedHeader); a++ {
         if string(encodedHeader[a]) != "=" {
@@ -267,7 +298,6 @@ func JWTgenerator(name string, email string, admin string) string {
             b = len(encodedPayload);
         }
     }
-    /* NOT BASE64 ENCODED FOR NOW
     for c := 0; c < len(encodedSecret); c++ {
         if string(encodedSecret[c]) != "=" {
             finalEncodedSecret += string(encodedSecret[c]);
@@ -275,14 +305,13 @@ func JWTgenerator(name string, email string, admin string) string {
             c = len(encodedSecret);
         }
     }
-    */
 
     JWTtoken := finalEncodedHeader + "." + finalEncodedPayload + "." + secret;
 
     return JWTtoken;
 }
 
-func SECRETgenerator(secLen int) string {
+func TokenGenerator(secLen int) string {
     symbol := []string{"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9"};
     finalSecret := "";
 
