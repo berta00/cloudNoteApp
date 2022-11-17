@@ -7,3 +7,4 @@ data:
     MYSQL_USER: auth
     MYSQL_DB: auth
     MYSQL_PORT: "3306"
+    GMAIL_EMAIL: "coudnoteapp00@gmail.com"

@@ -11,6 +11,7 @@ import (
     "strings"
     "time"
     "fmt"
+    "os"
 
     _ "github.com/go-sql-driver/mysql"
 )
@@ -18,14 +19,18 @@ import (
 // ws global info
 var WSdomain string = "localhost";
 var WSport   string = "8080";
-var JWTsec  string = "psaioufhodfiuadsofl";
+var JWTsec   string = os.Getenv("JWT_SECRET");
 
 // db global info
-var DBname string = "auth";
-var DBuser string = "auth";
-var DBpass string = "auth123";
-var DBaddr string = "127.0.0.1";
-var DBport string = "3306";
+var DBname string = os.Getenv("MYSQL_HOST");
+var DBuser string = os.Getenv("MYSQL_USER");
+var DBpass string = os.Getenv("MYSQL_PASSWORD");
+var DBaddr string = os.Getenv("MYSQL_DB");
+var DBport string = os.Getenv("MYSQL_PORT");
+
+// gmail access info
+var GMemail string = ;
+var GMpass string = os.Getenv("GMAIL_PASSWORD");
 
 // db users table struct
 type UsersStruct struct {
@@ -255,15 +260,15 @@ func emailCecked(w http.ResponseWriter, r *http.Request){
 func emailSender(name string, destinatioEmail string, token string){
     emailLink := WSdomain + ":" + WSport + "/emailceck?email=" + destinatioEmail + "&tok=" + token;
     // email variable
-    senderEmail := "soundclouddownloader00@gmail.com";
-    senderPass := "vyotmaamyfuhmoaf";
+    senderEmail := GMemail;
+    senderPass := GMpass;
     reciverMail := []string{destinatioEmail};
     // host variable
     host := "smtp.gmail.com"
     port := "587"
     address := host + ":" + port
     // message variable
-    subject := "Subject: SoundCloud download service email verification";
+    subject := "Subject: cloud note app email verification";
     body := "\nHi " + name + ",\n click here: " + emailLink + " to verify your email on the platform!";
     message := []byte(subject + body);
 
