@@ -2,13 +2,13 @@ package main
 
 import (
     "encoding/base64"
-    "crypto/base64"
 	"crypto/sha256"
     "crypto/hmac"
     "database/sql"
     "math/rand"
     "net/http"
     "net/smtp"
+    "strings"
     "time"
     "fmt"
 
@@ -18,7 +18,7 @@ import (
 // ws global info
 var WSdomain string = "localhost";
 var WSport   string = "8080";
-var JWTseec  stirng = "psaioufhodfiuadsofl";
+var JWTsec  string = "psaioufhodfiuadsofl";
 
 // db global info
 var DBname string = "auth";
@@ -38,6 +38,11 @@ type UsersStruct struct {
 }
 
 // JWT struct
+type JWT struct {
+    header  JWTheader
+    payload JWTpayload
+    secret  string
+}
 type JWTheader struct {
     alg   string
     typ   string
@@ -62,9 +67,10 @@ func main(){
 }
 
 func routesInit(){
-    http.HandleFunc("/",           mainRoute);
-    http.HandleFunc("/auth",       authRoute);
-    http.HandleFunc("/register",   regRoute);
+    http.HandleFunc("/",          mainRoute);
+    http.HandleFunc("/auth",      authRoute);
+    http.HandleFunc("/validate",  validateRoute);
+    http.HandleFunc("/register",  regRoute);
     http.HandleFunc("/emailceck", emailCecked);
 }
 
@@ -106,13 +112,79 @@ func authRoute(w http.ResponseWriter, r *http.Request){
             if userStructQuery.password == encodedPass {
                 JWTtoken := JWTgenerator(userStructQuery.name, userStructQuery.email, userStructQuery.admin);
                 // response
-                fmt.Println(JWTtoken);
-                base64Converter("decode", "cm9vdDEyMw==");
+                fmt.Println(string(JWTtoken));
+
+                //encodedJWTtoken := HS255Converter("encode", []byte(JWTtoken));
+
             } else {
                 http.Redirect(w, r, "/", http.StatusFound);
             }
 
             break;
+    }
+}
+
+func validateRoute(w http.ResponseWriter, r *http.Request){
+    switch(r.Method){
+        case "GET":
+            // redirect to home
+            http.Redirect(w, r, "/", http.StatusFound);
+            break;
+        case "POST":
+            token := r.FormValue("tok");
+
+            // parse the token
+            parsedToken := strings.Split(token, ".");
+
+            // decode token
+            NewJWT := new(JWT);
+            NewJWTheader := new(JWTheader);
+            NewJWTpayload := new(JWTpayload);
+
+            for jwtI := 0; jwtI < 2; jwtI++ {
+                currentSection := base64Converter("decode", parsedToken[jwtI]);
+                parsedSection := strings.Split(currentSection, "\"");
+
+                newValueFlag := false;
+                newValue := "";
+                validValue := 0;
+                for sectionI := 0; sectionI < len(parsedSection) ; sectionI++ {
+                    if parsedSection[sectionI] == ", " || parsedSection[sectionI] == "}" {
+                        if jwtI == 0 {
+                            switch validValue {
+                                case 1:
+                                    NewJWTheader.alg = newValue;
+                                case 2:
+                                    NewJWTheader.typ = newValue;
+                            }
+                        } else if jwtI == 1 {
+                            switch validValue {
+                                case 1:
+                                    NewJWTpayload.name = newValue;
+                                case 2:
+                                    NewJWTpayload.email = newValue;
+                                case 3:
+                                    NewJWTpayload.admin = newValue;
+                            }
+                        }
+                        newValueFlag = false;
+                    }
+                    if newValueFlag {
+                        newValue += parsedSection[sectionI]
+                    }
+                    if parsedSection[sectionI] == ":" {
+                        validValue++;
+                        newValue = "";
+                        newValueFlag = true;
+                    }
+                }
+            }
+
+            NewJWT.header = *NewJWTheader;
+            NewJWT.payload = *NewJWTpayload;
+            NewJWT.secret = parsedToken[2];
+
+            // result in NewJWT
     }
 }
 
@@ -209,17 +281,16 @@ func base64Converter(action string, string string) string {
     returnString := "";
 
     switch(action){
-        case "decode":/*   --RIVEDERE--
+        case "decode":
             //                    (ascii decimal arr)
-            decimalString, err := base64.StdEncoding.DecodeString(string);
+            decimalString, err := base64.RawURLEncoding.DecodeString(string);
             if err != nil {
                 fmt.Print("Base64 decode err: ");
                 fmt.Println(err);
             }
-            // ascii dec arr => char arr
-            decodedString := strings.Join(decimalString, "");
+            finalString := fmt.Sprintf("%s", decimalString);
             // return
-            returnString = decodedString;   */
+            returnString = finalString;
             break;
 
         case "encode":
@@ -235,27 +306,29 @@ func base64Converter(action string, string string) string {
     return returnString;
 }
 
-func HS255Converter(action string, string string) string {
-    returnString := "";
+func HS255Converter(action string, string []byte) []byte {
+    var returnString []byte;
 
     switch(action){
         case "decode":
 
             break;
         case "encode":
-            hasher := hmac.New(sha256.New, JWTseec);
-            _, err = hasher.Write(data);
+            hasher := hmac.New(sha256.New, []byte(JWTsec));
+            _, err := hasher.Write(string);
         	if err != nil {
-        		return "";
+        		return []byte("err encoding the string");
             }
         	r := hasher.Sum(nil);
+            returnString = r;
 
-        	returnString = base64.RawURLEncoding.EncodeToString(r);;
             break;
 
         default:
-            returnString = "HS255Converter err: function action parameter";
+            returnString = []byte("HS255Converter err: function action parameter");
     }
+
+    return returnString;
 }
 
 /*  Json Web Token format
@@ -269,46 +342,19 @@ func HS255Converter(action string, string string) string {
 
     REDY TO SEND: "[base64(header)].[base64(payload)].[secret]"
 */
-func JWTgenerator(name string, email string, admin string) string {
+func JWTgenerator(name string, email string, admin string) []byte {
     // create json element
     jsonHeader  := []byte(`{"alg":"HS256", "typ":"JWT"}`);
     jsonPayload := []byte(`{"name":"`+name+`", "email":"`+email+`", "admin":"`+admin+`"}`);
-    secret  := JWTseec;
+    secret := JWTsec;
 
     // create finale JWT
-    encodedHeader := HS255Converter(jsonHeader);
-    encodedPayload := HS255Converter(jsonPayload);
-    encodedSecret := HS255Converter([]byte(secret));
+    encodedHeader := base64.RawURLEncoding.EncodeToString(jsonHeader);
+    encodedPayload := base64.RawURLEncoding.EncodeToString(jsonPayload);
 
-    var finalEncodedHeader string;
-    var finalEncodedPayload string;
-    var finalEncodedSecret string;
+    JWTtoken := encodedHeader + "." + encodedPayload + "." + secret;
 
-    for a := 0; a < len(encodedHeader); a++ {
-        if string(encodedHeader[a]) != "=" {
-            finalEncodedHeader += string(encodedHeader[a]);
-        } else {
-            a = len(encodedHeader);
-        }
-    }
-    for b := 0; b < len(encodedPayload); b++ {
-        if string(encodedPayload[b]) != "=" {
-            finalEncodedPayload += string(encodedPayload[b]);
-        } else {
-            b = len(encodedPayload);
-        }
-    }
-    for c := 0; c < len(encodedSecret); c++ {
-        if string(encodedSecret[c]) != "=" {
-            finalEncodedSecret += string(encodedSecret[c]);
-        } else {
-            c = len(encodedSecret);
-        }
-    }
-
-    JWTtoken := finalEncodedHeader + "." + finalEncodedPayload + "." + secret;
-
-    return JWTtoken;
+    return []byte(JWTtoken);
 }
 
 func TokenGenerator(secLen int) string {
