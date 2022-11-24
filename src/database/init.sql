@@ -1,13 +1,8 @@
-CREATE USER 'auth'@'localhost'     IDENTIFIED BY 'auth123';
-CREATE USER 'download'@'localhost' IDENTIFIED BY 'download123';
+CREATE USER 'app'@'localhost' IDENTIFIED BY 'pass123';
+CREATE DATABASE app;
+GRANT ALL ON app.* TO 'app'@'localhost';+
 
-CREATE DATABASE auth;
-CREATE DATABASE soundCloudDownloads;
-
-GRANT ALL ON auth.*                TO 'auth'@'localhost';
-GRANT ALL ON soundCloudDownloads.* TO 'auth'@'localhost';
-
-USE auth;
+USE app;
 
 CREATE TABLE users (
 	id       int          not null auto_increment primary key,
@@ -17,7 +12,6 @@ CREATE TABLE users (
 	admin    boolean      not null default false,
 	date     timestamp    not null default current_timestamp()
 );
-
 CREATE TABLE emailConf (
 	id       int          not null auto_increment primary key,
 	name     varchar(255) not null,
@@ -27,20 +21,14 @@ CREATE TABLE emailConf (
 	expDate  datetime     not null,
 	done     boolean      not null default false
 );
+CREATE TABLE basicNote (
+	id       int          not null auto_increment primary key,
+	creator  varchar(255) not null,
+	content  varchar(255) not null,
+	crDate   timestamp    not null default current_timestamp(),
+	mfDate   timestamp    not null default current_timestamp()
+);
 
-#                                                                       base64
 INSERT INTO users (name,email,password) VALUES ("root","root@root.com","cm9vdDEyMw==");
-#                																		 base64
 INSERT INTO emailConf (name,email,token,sndDate,expDate) VALUES ("root","root@root.com","dG9rZW4=",current_timestamp(),current_timestamp() + INTERVAL 1 DAY);
 
-
-# ---------------------------------------------------------------
-USE soundCloudDownloads;
-
-CREATE TABLE songs (
-	id       int          not null auto_increment primary key,
-	name     varchar(255) not null unique,
-	author   varchar(255) not null,
-	length   int          not null,
-	request  int          not null
-)

@@ -1,4 +1,4 @@
-module github.com/berta00/soundCloudDownloader
+module github.com/berta00/cloudNoteApp
 
 go 1.19
 
