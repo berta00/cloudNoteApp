@@ -1,2 +1,2 @@
-DROP USER app;
-DROP DATABASE app;
+DROP USER 'app'@'localhost';
+DROP DATABASE noteapp;

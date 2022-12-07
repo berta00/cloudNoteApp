@@ -1,4 +1,31 @@
-package main;
+package utils;
+
+import(
+    "encoding/base64"
+    "encoding/hex"
+    "crypto/md5"
+    "math/rand"
+    "net/smtp"
+    "time"
+    "fmt"
+    "os"
+)
+
+// ws global info
+var WSdomain string = "localhost";
+var WSport   string = os.Getenv("WS_PORT");
+var JWTsec   string = os.Getenv("JWT_SECRET");
+
+// db global info
+var DBname string = os.Getenv("MYSQL_HOST");
+var DBuser string = os.Getenv("MYSQL_USER");
+var DBpass string = os.Getenv("MYSQL_PASSWORD");
+var DBaddr string = os.Getenv("MYSQL_DB");
+var DBport string = os.Getenv("MYSQL_PORT");
+
+// gmail access info
+var GMemail string = os.Getenv("GMAIL");
+var GMpass string = os.Getenv("GMAIL_PASSWORD");
 
 // JWT struct
 type JWT struct {
@@ -17,7 +44,7 @@ type JWTpayload struct {
 }
 
 
-func emailSender(name string, destinatioEmail string, token string){
+func EmailSender(name string, destinatioEmail string, token string){
     emailLink := WSdomain + ":" + WSport + "/emailceck?email=" + destinatioEmail + "&tok=" + token;
     // email variable
     senderEmail := GMemail;
@@ -42,13 +69,13 @@ func emailSender(name string, destinatioEmail string, token string){
     }
 }
 
-func base64Converter(action string, string string) string {
+func Base64Converter(action string, parString []byte) string {
     returnString := "";
 
     switch(action){
         case "decode":
             //                    (ascii decimal arr)
-            decimalString, err := base64.RawURLEncoding.DecodeString(string);
+            decimalString, err := base64.RawURLEncoding.DecodeString(string(parString));
             if err != nil {
                 fmt.Print("Base64 decode err: ");
                 fmt.Println(err);
@@ -59,7 +86,7 @@ func base64Converter(action string, string string) string {
             break;
 
         case "encode":
-            encodedString := base64.StdEncoding.EncodeToString([]byte(string));
+            encodedString := base64.StdEncoding.EncodeToString(parString);
             // return
             returnString = encodedString;
             break;
@@ -71,29 +98,11 @@ func base64Converter(action string, string string) string {
     return returnString;
 }
 
-func HS255Converter(action string, string []byte) []byte {
-    var returnString []byte;
-
-    switch(action){
-        case "decode":
-
-            break;
-        case "encode":
-            hasher := hmac.New(sha256.New, []byte(JWTsec));
-            _, err := hasher.Write(string);
-        	if err != nil {
-        		return []byte("err encoding the string");
-            }
-        	r := hasher.Sum(nil);
-            returnString = r;
-
-            break;
-
-        default:
-            returnString = []byte("HS255Converter err: function action parameter");
-    }
-
-    return returnString;
+func MD5Converter(parString []byte) [16]byte {
+    salt := os.Getenv("PASS_SALT");
+    finalString := salt + string(parString);
+    
+    return md5.Sum([]byte(finalString));
 }
 
 /*  Json Web Token format
@@ -133,4 +142,8 @@ func TokenGenerator(secLen int) string {
     }
 
     return finalSecret;
+}
+
+func Byte16ToString(parString [16]byte) string {
+    return hex.EncodeToString([]byte(parString[:]));
 }

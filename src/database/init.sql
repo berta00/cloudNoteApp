@@ -1,8 +1,8 @@
 CREATE USER 'app'@'localhost' IDENTIFIED BY 'pass123';
-CREATE DATABASE app;
-GRANT ALL ON app.* TO 'app'@'localhost';+
+CREATE DATABASE noteapp;
+GRANT ALL ON noteapp.* TO 'app'@'localhost';
 
-USE app;
+USE noteapp;
 
 CREATE TABLE users (
 	id       int          not null auto_increment primary key,
@@ -29,6 +29,15 @@ CREATE TABLE basicNote (
 	mfDate   timestamp    not null default current_timestamp()
 );
 
-INSERT INTO users (name,email,password) VALUES ("root","root@root.com","cm9vdDEyMw==");
-INSERT INTO emailConf (name,email,token,sndDate,expDate) VALUES ("root","root@root.com","dG9rZW4=",current_timestamp(),current_timestamp() + INTERVAL 1 DAY);
+INSERT INTO users (name,email,password) VALUES (
+	"root",
+	"root@root.com",
+	"cm9vdDEyMw=="
+	);
+INSERT INTO emailConf (name,email,token,sndDate,expDate) VALUES (
+	"root",
+	"root@root.com",
+	"dG9rZW4=",
+	current_timestamp(),
+	current_timestamp() + INTERVAL 1 DAY);
 

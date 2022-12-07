@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&family=Roboto:wght@100;300;400;500;700&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+}
+body {
+    height: 100vh;
+    width: 100%;
+
+    background: black;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main {
+    height: 40%;
+    width: 30%;
+
+    background: white;
+    border-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.main a {
+    margin-top: 5.5%;
+    margin-bottom: 5.5%;
+
+    color: black;
+    font-family: 'Indie Flower', cursive;
+    font-size: 300%;
+    font-weight: 800;
+}
+.main input {
+    height: auto;
+    width: calc(85% - 14px*2);
+    margin-top: 3%;
+    padding: 14px;
+
+    background: black;
+    border-radius: 10px;
+    border: solid 0;
+    text-align: center;
+
+    font-family: 'Roboto', sans-serif;
+    font-size: 100%;
+    color: white;
+}
+.main div {
+    height: auto;
+    width: 85%;
+    margin-top: 5%;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.main div a {
+    height: auto;
+    width: 50%;
+
+    font-family: 'Roboto', sans-serif;
+    font-size: 114%;
+    color: black;
+}
+.main div button {
+    height: auto;
+    width: 20%;
+    margin-left: 30%;
+    padding: 14px;
+
+    background: black;
+    border-radius: 10px;
+    border: solid 0;
+    text-align: center;
+
+    font-family: 'Roboto', sans-serif;
+    font-size: 120%;
+    color: white;
+}
+.loadDiv {
+    height: 6%;
+    width: 6%;
+    position: absolute;
+}
+
+p {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: 10px;
+
+    font-family: 'Roboto', sans-serif;
+    font-size: 100%;
+    color: white;
+}
+p a {
+    position: relative;
+    color: white;
+}
+
+/* MOBILE */
+@media only screen and (max-width: 700px) {
+    .main {
+        width: 90%;
+    }
+    .main div button {
+        width: 35%;
+        margin-left: 15%;
+    }
+}
