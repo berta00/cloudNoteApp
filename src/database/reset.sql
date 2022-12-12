@@ -1,4 +1,4 @@
-USE app;
+USE noteapp;
 
 DELETE FROM users     WHERE id >= 0;
 DELETE FROM emailConf WHERE id >= 0;

@@ -20,7 +20,6 @@ loginButton.addEventListener("click", ()=> {
     let encPwd = md5("kdabfaxjbcjkabldfasdfjlablfjbashbhakv" + pwdValue);
     console.log(encPwd);
     // create form and submit
-    main.innerHTML = "<form class='login' method='POST' action='/auth' style='display: none;'><input type='hidden' name='email' value='" + emailValue + "'><input type='hidden' name='password' value='" + encPwd + "'><input type='submit'></form>";
-    //main.querySelector(".login").submit();
-
+    main.innerHTML = "<form class='loginForm' method='POST' action='/dash' style='display: none;'><input type='hidden' name='email' value='" + emailValue + "'><input type='hidden' name='password' value='" + encPwd + "'><input type='submit'></form>";
+    main.querySelector(".loginForm").submit();
 });

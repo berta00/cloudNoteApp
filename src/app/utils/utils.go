@@ -6,6 +6,8 @@ import(
     "crypto/md5"
     "math/rand"
     "net/smtp"
+    "os/exec"
+    "runtime"
     "time"
     "fmt"
     "os"
@@ -27,22 +29,26 @@ var DBport string = os.Getenv("MYSQL_PORT");
 var GMemail string = os.Getenv("GMAIL");
 var GMpass string = os.Getenv("GMAIL_PASSWORD");
 
-// JWT struct
-type JWT struct {
-    header  JWTheader
-    payload JWTpayload
-    secret  string
+func EnvVarSet(){
+    finalPath1 := "Users/marcobertagnolli/Desktop/Programmazione/cloudNoteApp/src/app/utils/testEnvSetup/config.sh";
+    finalPath2 := "./utils/testEnvSetup/secret.sh";
+    if runtime.GOOS != "windows" {
+        out1, err1 := exec.Command("source", "/", finalPath1).Output();
+        if err1 != nil {
+            fmt.Println("- Err setting the config var: " + err1.Error());
+        } else {
+            fmt.Println("- " + string(out1[:]));
+        }
+        out2, err2 := exec.Command("source", finalPath2).Output();
+        if err2 != nil {
+            fmt.Println("- Err setting the secret var: " + err2.Error());
+        } else {
+            fmt.Println("- " + string(out2[:]));
+        }
+    } else {
+        fmt.Println("windows is not compatible to run this program (for now)");
+    }
 }
-type JWTheader struct {
-    alg   string
-    typ   string
-}
-type JWTpayload struct {
-    name  string
-    email string
-    admin string
-}
-
 
 func EmailSender(name string, destinatioEmail string, token string){
     emailLink := WSdomain + ":" + WSport + "/emailceck?email=" + destinatioEmail + "&tok=" + token;
@@ -116,20 +122,6 @@ func MD5Converter(parString []byte) [16]byte {
 
     REDY TO SEND: "[base64(header)].[base64(payload)].[secret]"
 */
-func JWTgenerator(name string, email string, admin string) []byte {
-    // create json element
-    jsonHeader  := []byte(`{"alg":"HS256", "typ":"JWT"}`);
-    jsonPayload := []byte(`{"name":"`+name+`", "email":"`+email+`", "admin":"`+admin+`"}`);
-    secret := JWTsec;
-
-    // create finale JWT
-    encodedHeader := base64.RawURLEncoding.EncodeToString(jsonHeader);
-    encodedPayload := base64.RawURLEncoding.EncodeToString(jsonPayload);
-
-    JWTtoken := encodedHeader + "." + encodedPayload + "." + secret;
-
-    return []byte(JWTtoken);
-}
 
 func TokenGenerator(secLen int) string {
     symbol := []string{"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9"};

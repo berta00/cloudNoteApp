@@ -16,8 +16,8 @@ body {
 }
 
 .main {
-    height: 40%;
-    width: 30%;
+    height: 390px;
+    width: 500px;
 
     background: white;
     border-radius: 20px;
@@ -27,8 +27,8 @@ body {
     align-items: center;
 }
 .main a {
-    margin-top: 5.5%;
-    margin-bottom: 5.5%;
+    margin-top: 7.5%;
+    margin-bottom: 7.2%;
 
     color: black;
     font-family: 'Indie Flower', cursive;
@@ -38,7 +38,7 @@ body {
 .main input {
     height: auto;
     width: calc(85% - 14px*2);
-    margin-top: 3%;
+    margin-top: 2%;
     padding: 14px;
 
     background: black;
@@ -50,16 +50,29 @@ body {
     font-size: 100%;
     color: white;
 }
-.main div {
+.main .msg {
+    height: 10%;
+    width: calc(85%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.main .msg a {
+    margin-top: 0;
+    margin-bottom: 0;
+    font-family: 'Roboto', sans-serif; 
+    font-size: 100%;
+    font-weight: 500;
+}
+.main .buttons {
     height: auto;
     width: 85%;
-    margin-top: 5%;
 
     display: flex;
     flex-direction: row;
     align-items: center;
 }
-.main div a {
+.main .buttons a {
     height: auto;
     width: 50%;
 
@@ -67,7 +80,7 @@ body {
     font-size: 114%;
     color: black;
 }
-.main div button {
+.main .buttons button {
     height: auto;
     width: 20%;
     margin-left: 30%;

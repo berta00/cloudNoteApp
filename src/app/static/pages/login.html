@@ -2,14 +2,25 @@
     <head>
         <link rel="stylesheet" href="/static/css/login.css"></link>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Note app - login</title>
+        <title>Cloud Notes - login</title>
     </head>
     <body>
         <div class="main">
-            <a>Note app</a>
+            <a>Cloud Notes</a>
             <input class="email" placeholder="e-mail" type="email">
             <input class="pwd" placeholder="password" type="password">
-            <div>
+            <div class="msg">
+                {{if .NewAcc}}
+                    <a style="color: black;">New account created!</a>
+                {{end}}
+                {{if .WrongCred}}
+                    <a style="color: red;">Wrong username or passwrd!</a>
+                {{end}}
+                {{if .ConfMail}}
+                    <a style="color: black;">Email confirmed!</a>
+                {{end}}
+            </div>
+            <div class="buttons">
                 <a>Sign-in</a>
                 <button>Entra</button>
             </div>

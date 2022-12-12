@@ -4,14 +4,17 @@ import (
     "html/template"
     "database/sql"
     "net/http"
-    "strings"
     "runtime"
+    "time"
     "fmt"
     "os"
 
     "github.com/berta00/cloudNoteApp/utils"
     _ "github.com/go-sql-driver/mysql"
 )
+
+// debug mode
+var DebugMode bool = true;
 
 // ws global info
 var WSdomain string = "localhost";
@@ -29,41 +32,47 @@ var DBport string = os.Getenv("MYSQL_PORT");
 var GMemail string = "";
 var GMpass string = os.Getenv("GMAIL_PASSWORD");
 
-// JWT struct
-type JWT struct {
-    header  JWTheader
-    payload JWTpayload
-    secret  string
-}
-type JWTheader struct {
-    alg   string
-    typ   string
-}
-type JWTpayload struct {
-    name  string
-    email string
-    admin string
+// users
+var TotalUsers int = 0;
+
+// login page struct
+type loginPage struct {
+    NewAcc    bool
+    WrongCred bool
+    ConfMail  bool
 }
 
-// db users table struct
+// db table struct
 type UsersStruct struct {
-    id       int;
-    name     string;
-    email    string;
-    password string;
-    admin    string;
-    date     string;
+    id       int
+    name     string
+    email    string
+    password string
+    admin    string
+    date     string
+}
+type BasicNoteStruct struct {
+    id       int
+    creator  string
+    content  string
+    crDate   string
+    mfDate   string
 }
 
 func main(){
-    fmt.Println("Webserver start program");
+    if DebugMode {
+        fmt.Println("Setting/updating env varaible:");
+        utils.EnvVarSet();
+    }
+    fmt.Println("\nWebserver start program:");
+    current_time := time.Now();
+    fmt.Println("- " + current_time.Format("2006-01-02 15:04:05") + " Starting webserver at port: " + WSport + "...");
 
     // initialize routes
     routesInit();
 
     // start webserver
     err := http.ListenAndServe(":" + WSport, nil);
-    fmt.Println("Webserver started at port " + WSport);
     if err == nil {
         fmt.Print("\n\nError (can't start webserver): ");
         fmt.Println(err);
@@ -75,43 +84,60 @@ func routesInit(){
 	http.Handle("/static/", http.StripPrefix("/static", fs))
 
     http.HandleFunc("/",          mainRoute);
-    http.HandleFunc("/auth",      authRoute);
-    http.HandleFunc("/login",     loginRoute);
-    http.HandleFunc("/validate",  validateRoute);
+    http.HandleFunc("/dash",      dashRoute);
     http.HandleFunc("/register",  regRoute);
     http.HandleFunc("/emailceck", emailCecked);
 }
 
 func mainRoute(w http.ResponseWriter, r *http.Request){
-    fmt.Println("cloud note app home service!");
-}
+    // users number track
+    TotalUsers++;
+    current_time := time.Now();
+    fmt.Printf("- " + current_time.Format("2006-01-02 15:04:05") + " Total user: %d\r", TotalUsers);
+    // query parsing
+    // 1: account created, 2: wrong credentials 3: email confirmed
+    msg := r.URL.Query().Get("msg");
 
-func loginRoute(w http.ResponseWriter, r *http.Request){
-
+    newLogin := new(loginPage);
+    newLogin.NewAcc = false;
+    newLogin.WrongCred = false;
+    newLogin.ConfMail = false;
+    switch(msg){
+        case "1":
+            newLogin.NewAcc = true;
+            break;
+        case "2":
+            newLogin.WrongCred = true;
+            break;
+        case "3":
+            newLogin.ConfMail = true;
+    }
     // html template
     Cwd, _ := os.Getwd();
     Os := runtime.GOOS
     switch Os {
         case "windows":
             template, _ := template.ParseFiles(Cwd + "\\static\\pages\\login.html")
-            template.Execute(w, "")
+            template.Execute(w, newLogin)
             break
         default:
             template, _ := template.ParseFiles(Cwd + "/static/pages/login.html")
-            template.Execute(w, "")
+            template.Execute(w, newLogin)
     }
 }
 
-func authRoute(w http.ResponseWriter, r *http.Request){
+func dashRoute(w http.ResponseWriter, r *http.Request){
+    userIsGet := false;
+    userIsAuth := false;
+    //userName := "";
+    //userEmail := "";
+
     switch(r.Method){
         case "GET":
-            // redirect to home
-            http.Redirect(w, r, "/", http.StatusFound);
+            userIsGet = true;
             break;
 
         case "POST":
-            http.Redirect(w, r, "/", http.StatusFound);
-
             email := r.FormValue("email");
             decodedPass := r.FormValue("password");
 
@@ -133,87 +159,46 @@ func authRoute(w http.ResponseWriter, r *http.Request){
             for userQuery.Next(){
                 userQuery.Scan(&userStructQuery.name, &userStructQuery.email, &userStructQuery.password, &userStructQuery.admin);
             }
-
-            // if account dont exist, return with error 1
-            if userStructQuery.password == "" {
-                http.Redirect(w, r, "/?err=1", http.StatusFound);
-            }
-            // if password ok do some things
+            // if password is correct
             fmt.Println(userStructQuery.password);
             if userStructQuery.password == utils.Byte16ToString(encodedPass) {
-                JWTtoken := utils.JWTgenerator(userStructQuery.name, userStructQuery.email, userStructQuery.admin);
-                // response
-                fmt.Println(string(JWTtoken));
-
-                //encodedJWTtoken := HS255Converter("encode", []byte(JWTtoken));
-
-            } else {
-                http.Redirect(w, r, "/?err=2", http.StatusFound);
+                userIsAuth = true;
             }
-    }
-}
+            
+            //userName := userStructQuery.name;
+            //userEmail := userStructQuery.email;
 
-func validateRoute(w http.ResponseWriter, r *http.Request){
-    switch(r.Method){
-        case "GET":
-            // redirect to home
-            http.Redirect(w, r, "/", http.StatusFound);
             break;
-        case "POST":
-            token := r.FormValue("tok");
+    }
+    if userIsAuth {
+        // re-connect to db
+        dbConnstring := DBuser + ":" + DBpass + "@tcp(" + DBaddr + ":" + DBport + ")/" + DBname;
+        DBConn, err := sql.Open("mysql", dbConnstring);
+        if err != nil {
+            fmt.Print("Authentication err: ");
+            fmt.Println(err);
+        }
+        defer DBConn.Close();
+        // query the 
 
-            // parse the token
-            parsedToken := strings.Split(token, ".");
-
-            // decode token
-            NewJWT := new(JWT);
-            NewJWTheader := new(JWTheader);
-            NewJWTpayload := new(JWTpayload);
-
-            for jwtI := 0; jwtI < 2; jwtI++ {
-                currentSection := utils.Base64Converter("decode", []byte(parsedToken[jwtI]));
-                parsedSection := strings.Split(currentSection, "\"");
-
-                newValueFlag := false;
-                newValue := "";
-                validValue := 0;
-                for sectionI := 0; sectionI < len(parsedSection); sectionI++ {
-                    if parsedSection[sectionI] == ", " || parsedSection[sectionI] == "}" {
-                        if jwtI == 0 {
-                            switch validValue {
-                                case 1:
-                                    NewJWTheader.alg = newValue;
-                                case 2:
-                                    NewJWTheader.typ = newValue;
-                            }
-                        } else if jwtI == 1 {
-                            switch validValue {
-                                case 1:
-                                    NewJWTpayload.name = newValue;
-                                case 2:
-                                    NewJWTpayload.email = newValue;
-                                case 3:
-                                    NewJWTpayload.admin = newValue;
-                            }
-                        }
-                        newValueFlag = false;
-                    }
-                    if newValueFlag {
-                        newValue += parsedSection[sectionI]
-                    }
-                    if parsedSection[sectionI] == ":" {
-                        validValue++;
-                        newValue = "";
-                        newValueFlag = true;
-                    }
-                }
-            }
-
-            NewJWT.header = *NewJWTheader;
-            NewJWT.payload = *NewJWTpayload;
-            NewJWT.secret = parsedToken[2];
-
-            // result in NewJWT
+        // html template
+        Cwd, _ := os.Getwd();
+        Os := runtime.GOOS
+        switch Os {
+            case "windows":
+                template, _ := template.ParseFiles(Cwd + "\\static\\pages\\dashboard.html")
+                template.Execute(w, "")
+                break
+            default:
+                template, _ := template.ParseFiles(Cwd + "/static/pages/dashboard.html")
+                template.Execute(w, "")
+        }
+    } else if userIsGet {
+        // redirect to home
+        http.Redirect(w, r, "/", http.StatusFound);
+    } else {
+        // redirect to home |err: wrong credentials
+        http.Redirect(w, r, "/?msg=2", http.StatusFound);
     }
 }
 
@@ -255,18 +240,14 @@ func regRoute(w http.ResponseWriter, r *http.Request){
 
             fmt.Println("new user registered");
 
-            http.Redirect(w, r, "/", http.StatusFound);
-
-
+            // redirect to home |msg: account created
+            http.Redirect(w, r, "/?msg=1", http.StatusFound);
 
             break;
     }
 }
 
 func emailCecked(w http.ResponseWriter, r *http.Request){
-    // SAY THIS ONLY WHEN EMAIL AND TOKEN ARE OK
-    fmt.Fprint(w, "Email cecked!");
-
     confEmail := r.URL.Query().Get("email");
     confToken := r.URL.Query().Get("tok");
 
@@ -283,5 +264,18 @@ func emailCecked(w http.ResponseWriter, r *http.Request){
     if err != nil {
         fmt.Print("Email confirm err: ");
         fmt.Println(err);
+    }
+
+    // html template
+    Cwd, _ := os.Getwd();
+    Os := runtime.GOOS
+    switch Os {
+        case "windows":
+            template, _ := template.ParseFiles(Cwd + "\\static\\pages\\confirmedEmail.html")
+            template.Execute(w, "")
+            break
+        default:
+            template, _ := template.ParseFiles(Cwd + "/static/pages/confirmedEmail.html")
+            template.Execute(w, "")
     }
 }
