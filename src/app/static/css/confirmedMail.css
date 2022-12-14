@@ -3,7 +3,27 @@
     padding: 0;
 }
 body {
+    height: 100vh;
+    width: 100%;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     align-items: center;
+    background: black;
+}
+
+a {
+    font-family: 'Roboto', sans-serif;
+    font-size: 170%;
+    color: white;
+}
+button {
+    margin-top: 25px;
+    height: 45px;
+    width: 155px;
+    border: 0 solid;
+    font-family: 'Roboto', sans-serif;
+    font-size: 120%;
+    color: black;
+    background: white;
 }

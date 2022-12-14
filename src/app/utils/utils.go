@@ -6,11 +6,13 @@ import(
     "crypto/md5"
     "math/rand"
     "net/smtp"
+    "net/mail"
     "os/exec"
     "runtime"
     "time"
     "fmt"
     "os"
+	"github.com/scorredoira/email"
 )
 
 // ws global info
@@ -60,19 +62,19 @@ func EmailSender(name string, destinatioEmail string, token string){
     host := "smtp.gmail.com"
     port := "587"
     address := host + ":" + port
-    // message variable
-    subject := "Subject: cloud note app email verification";
-    body := "\nHi " + name + ",\n click here: " + emailLink + " to verify your email on the platform!";
-    message := []byte(subject + body);
+    // message
+    finalBody := "Hi " + name + ",<br> click on this link: " + emailLink + "<br>to verify your email.";
+    finalEmail := email.NewHTMLMessage("Email verification", finalBody)
+    finalEmail.From = mail.Address{Name: "Cloud notes", Address: senderEmail};
+    finalEmail.To = reciverMail;
 
     // auth in mail service
     auth := smtp.PlainAuth("", senderEmail, senderPass, host);
     // send email
-    err := smtp.SendMail(address, auth, senderEmail, reciverMail, message);
-    if err != nil {
-        fmt.Print("err (send email): ");
-        fmt.Println(err);
-    }
+	if err := email.Send(address, auth, finalEmail); err != nil {
+		fmt.Print("email err: ")
+        fmt.Println(err)
+	}
 }
 
 func Base64Converter(action string, parString []byte) string {

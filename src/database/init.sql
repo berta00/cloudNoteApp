@@ -5,12 +5,14 @@ GRANT ALL ON noteapp.* TO 'app'@'localhost';
 USE noteapp;
 
 CREATE TABLE users (
-	id       int          not null auto_increment primary key,
-	name     varchar(255) not null,
-	email    varchar(255) not null unique,
-	password varchar(255) not null,
-	admin    boolean      not null default false,
-	date     timestamp    not null default current_timestamp()
+	id             int          not null auto_increment primary key,
+	nick           varchar(255) not null,
+	name           varchar(255) not null,
+	email          varchar(255) not null unique,
+	password       varchar(255) not null,
+	emailConfirmed boolean      not null default false,
+	admin          boolean      not null default false,
+	date           timestamp    not null default current_timestamp()
 );
 CREATE TABLE emailConf (
 	id       int          not null auto_increment primary key,
@@ -28,7 +30,7 @@ CREATE TABLE basicNote (
 	crDate   timestamp    not null default current_timestamp(),
 	mfDate   timestamp    not null default current_timestamp()
 );
-
+/*
 INSERT INTO users (name,email,password) VALUES (
 	"root",
 	"root@root.com",
@@ -40,4 +42,4 @@ INSERT INTO emailConf (name,email,token,sndDate,expDate) VALUES (
 	"dG9rZW4=",
 	current_timestamp(),
 	current_timestamp() + INTERVAL 1 DAY);
-
+*/

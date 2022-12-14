@@ -40,14 +40,25 @@ type loginPage struct {
     NewAcc    bool
     WrongCred bool
     ConfMail  bool
+    Section   string
+}
+// dash page struct
+type dashPage struct {
+    Nick      string
+    Name      string
+    Email     string
+    EmailCk   bool
+    Section   string
 }
 
 // db table struct
 type UsersStruct struct {
     id       int
+    nick     string
     name     string
     email    string
     password string
+    emailCk  bool
     admin    string
     date     string
 }
@@ -85,7 +96,7 @@ func routesInit(){
 
     http.HandleFunc("/",          mainRoute);
     http.HandleFunc("/dash",      dashRoute);
-    http.HandleFunc("/register",  regRoute);
+    http.HandleFunc("/reg",       regRoute);
     http.HandleFunc("/emailceck", emailCecked);
 }
 
@@ -97,8 +108,11 @@ func mainRoute(w http.ResponseWriter, r *http.Request){
     // query parsing
     // 1: account created, 2: wrong credentials 3: email confirmed
     msg := r.URL.Query().Get("msg");
-
+    sec := r.URL.Query().Get("sec");
+    
     newLogin := new(loginPage);
+    newLogin.Section = sec;
+
     newLogin.NewAcc = false;
     newLogin.WrongCred = false;
     newLogin.ConfMail = false;
@@ -129,8 +143,11 @@ func mainRoute(w http.ResponseWriter, r *http.Request){
 func dashRoute(w http.ResponseWriter, r *http.Request){
     userIsGet := false;
     userIsAuth := false;
-    //userName := "";
-    //userEmail := "";
+    userNick := "";
+    userName := "";
+    userEmail := "";
+    userEmailCk := false;
+    dashSection := "";
 
     switch(r.Method){
         case "GET":
@@ -139,16 +156,16 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
 
         case "POST":
             email := r.FormValue("email");
-            decodedPass := r.FormValue("password");
+            encodedPass := r.FormValue("password");
 
-            encodedPass := utils.MD5Converter([]byte(decodedPass));
+            sec := r.URL.Query("sec");
 
             // connect to db
             dbConnstring := DBuser + ":" + DBpass + "@tcp(" + DBaddr + ":" + DBport + ")/" + DBname;
             DBConn, err := sql.Open("mysql", dbConnstring);
             defer DBConn.Close();
             // query the users
-            dbQuery := "select name, email, password, admin from users where email='" + email + "';";
+            dbQuery := "select nick, name, email, password, emailConfirmed, admin from users where email='" + email + "';";
             userQuery, err := DBConn.Query(dbQuery);
             if err != nil {
                 fmt.Print("Authentication err: ");
@@ -157,16 +174,16 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
             // read query
             userStructQuery := new(UsersStruct);
             for userQuery.Next(){
-                userQuery.Scan(&userStructQuery.name, &userStructQuery.email, &userStructQuery.password, &userStructQuery.admin);
+                userQuery.Scan(&userStructQuery.nick, &userStructQuery.name, &userStructQuery.email, &userStructQuery.password, &userStructQuery.emailCk, &userStructQuery.admin);
             }
-            // if password is correct
-            fmt.Println(userStructQuery.password);
-            if userStructQuery.password == utils.Byte16ToString(encodedPass) {
+            if encodedPass == userStructQuery.password {
                 userIsAuth = true;
             }
             
-            //userName := userStructQuery.name;
-            //userEmail := userStructQuery.email;
+            userNick = userStructQuery.nick;
+            userName = userStructQuery.name;
+            userEmail = userStructQuery.email;
+            userEmailCk = userStructQuery.emailCk;
 
             break;
     }
@@ -179,7 +196,16 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
             fmt.Println(err);
         }
         defer DBConn.Close();
-        // query the 
+
+        // query the users data
+
+
+        dashData := new(dashPage);
+        dashData.Nick = userNick;
+        dashData.Name = userName;
+        dashData.Email = userEmail;
+        dashData.EmailCk = userEmailCk;
+        dashData.Section = sec;
 
         // html template
         Cwd, _ := os.Getwd();
@@ -187,11 +213,11 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
         switch Os {
             case "windows":
                 template, _ := template.ParseFiles(Cwd + "\\static\\pages\\dashboard.html")
-                template.Execute(w, "")
+                template.Execute(w, dashData)
                 break
             default:
                 template, _ := template.ParseFiles(Cwd + "/static/pages/dashboard.html")
-                template.Execute(w, "")
+                template.Execute(w, dashData)
         }
     } else if userIsGet {
         // redirect to home
@@ -210,6 +236,7 @@ func regRoute(w http.ResponseWriter, r *http.Request){
             break;
 
         case "POST":
+            nick     := r.FormValue("nick");
             name     := r.FormValue("name");
             email    := r.FormValue("email");
             password := r.FormValue("password");
@@ -220,25 +247,20 @@ func regRoute(w http.ResponseWriter, r *http.Request){
             defer DBConn.Close();
 
             // insert query to db (new user)
-            finalPassword := utils.Byte16ToString(utils.MD5Converter([]byte(password)));
-            userUploadQuery := "insert users (name, email, password, admin) values ('" + name + "','" + email + "','" + finalPassword + "', false);";
+            userUploadQuery := "insert users (nick, name, email, password, emailConfirmed, admin) values ('" + nick + "', '" + name + "','" + email + "','" + password + "', false, false);";
             _, err1 := DBConn.Query(userUploadQuery);
             if err1 != nil {
-                fmt.Print("Registration err: ");
-                fmt.Println(err1);
+                http.Redirect(w, r, "/?msg=1&sec=2", http.StatusFound);
             }
             // insert query to db (new token)
             newToken := utils.TokenGenerator(40);
             tokenUploadQuery := "insert emailConf (name, email, token, sndDate, expDate, done) values ('" + name + "','" + email + "','" + newToken + "', current_timestamp(), current_timestamp() + INTERVAL 1 DAY, false);";
             _, err2 := DBConn.Query(tokenUploadQuery);
             if err2 != nil {
-                fmt.Print("Registration err: ");
-                fmt.Println(err2);
+                http.Redirect(w, r, "/?msg=1&sec=2", http.StatusFound);
             }
 
             utils.EmailSender(name, email, newToken);
-
-            fmt.Println("new user registered");
 
             // redirect to home |msg: account created
             http.Redirect(w, r, "/?msg=1", http.StatusFound);
@@ -258,12 +280,20 @@ func emailCecked(w http.ResponseWriter, r *http.Request){
 
     // ceck exp date
 
-    // update query to db (token)
+    // update query to db (token table)
     tokenDoneQuery := "update emailConf set done=true where email='" + confEmail + "' and token='" + confToken + "';";
-    _, err := DBConn.Query(tokenDoneQuery);
-    if err != nil {
+    _, err1 := DBConn.Query(tokenDoneQuery);
+    if err1 != nil {
         fmt.Print("Email confirm err: ");
-        fmt.Println(err);
+        fmt.Println(err1);
+    }
+
+    // update query to db (users table)
+    userDoneQuery := "update users set emailConfirmed=true where email='" + confEmail + "';";
+    _, err2 := DBConn.Query(userDoneQuery);
+    if err2 != nil {
+        fmt.Print("Email confirm err: ");
+        fmt.Println(err2);
     }
 
     // html template

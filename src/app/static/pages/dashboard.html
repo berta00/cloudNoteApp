@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="/static/css/dashboard.css">
+    </head>
+    <body>
+        <div class="emailCeckBanner">
+            <a>Pls, ceck your email and verify it at the link sended</a>
+            <div class="cross" onclick="emailCkBanner('hide')">
+                <div style="transform-origin: center; transform: translateX(20px) translateY(10px) rotate(45deg);"></div>
+                <div style="transform-origin: center; transform: translateX(20px)  translateY(10px) rotate(-45deg)"></div>
+            </div>
+        </div>
+        <script>
+            // EMAIL CECK BANNER
+            let emailBannerDefault = "{{.EmailCk}}";
+            let emailBannerDiv = document.querySelector(".emailCeckBanner");
+            emailBannerDiv.style.transform = "translateY(-30px)";
+            if(emailBannerDefault == "false"){
+                emailBannerDiv.style.transition = "0.2s";
+                emailBannerDiv.style.transform = "translateY(0px)";
+            }
+            document.querySelector(".emailCeckBanner .cross").addEventListener("click", ()=> {
+                emailBannerDiv.style.transform = "translateY(-30px)";
+            });
+            // GENERAL VARIABLES
+            userNick = "{{.Nick}}";
+        </script>
+
+        <div class="header">
+            <p class="path"></p>
+        </div>
+
+        <div class="browseSection">
+            <div class="main">
+                <div class="leftSection">
+
+                </div>
+                <div class="centralSection">
+
+                </div>
+            </div>
+        </div>
+
+        <div class="fileSection">
+            <div class="main">
+                <div class="leftSection">
+
+                </div>
+                <div class="centralSection">
+
+                </div>
+                <div class="toolDock">
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+        <script src="/static/js/dashboard.js"></script>
+    </body>
+</html>

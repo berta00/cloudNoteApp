@@ -5,16 +5,19 @@
         <title>Cloud Notes - login</title>
     </head>
     <body>
-        <div class="main">
+        <script>
+            let section = "{{.Section}}";
+        </script>
+        <div class="main" id="login" style="display: flex;">
             <a>Cloud Notes</a>
             <input class="email" placeholder="e-mail" type="email">
             <input class="pwd" placeholder="password" type="password">
             <div class="msg">
                 {{if .NewAcc}}
-                    <a style="color: black;">New account created!</a>
+                    <a style="color: black;">New account created! Ceck your email</a>
                 {{end}}
                 {{if .WrongCred}}
-                    <a style="color: red;">Wrong username or passwrd!</a>
+                    <a style="color: red;">Wrong username or password!</a>
                 {{end}}
                 {{if .ConfMail}}
                     <a style="color: black;">Email confirmed!</a>
@@ -25,7 +28,21 @@
                 <button>Entra</button>
             </div>
         </div>
-        <div class="loadDiv">
+        <div class="main" id="register" style="display: none;">
+            <a>Cloud Notes</a>
+            <div class="inlineInput">
+                <input class="fullName" placeholder="full name" type="text">
+                <input class="nickName" placeholder="nick name" type="text" style="margin-left: 10px;">
+            </div>
+            <input class="email" placeholder="e-mail" type="email">
+            <input class="pwd" placeholder="password" type="password">
+            <div class="msg"></div>
+            <div class="buttons" id="regButton">
+                <a>Log-in</a>
+                <button>Registrati</button>
+            </div>
+        </div>
+        <div class="loadDiv" style="display: none;">
             <svg version="1.1" id="L9" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" enable-background="new 0 0 0 0" xml:space="preserve">
                     <path fill="#000000" d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
                     <animateTransform 

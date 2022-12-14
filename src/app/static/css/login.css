@@ -22,7 +22,6 @@ body {
     background: white;
     border-radius: 20px;
 
-    display: flex;
     flex-direction: column;
     align-items: center;
 }
@@ -49,6 +48,33 @@ body {
     font-family: 'Roboto', sans-serif;
     font-size: 100%;
     color: white;
+}
+.main .inlineInput {
+    height: auto;
+    width: calc(85%);
+    margin-top: 2%;
+
+    display: flex;
+    flex-direction: row;
+}
+.main .inlineInput input {
+    height: auto;
+    padding: 14px;
+
+    background: black;
+    border-radius: 10px;
+    border: solid 0;
+    text-align: center;
+
+    font-family: 'Roboto', sans-serif;
+    font-size: 100%;
+    color: white;
+}
+.main .inlineInput input:nth-child(1){
+    width: calc(65% - 5px - 14px*2);
+}
+.main .inlineInput input:nth-child(2){
+    width: calc(35% - 5px - 14px*2);
 }
 .main .msg {
     height: 10%;
@@ -114,6 +140,13 @@ p {
 p a {
     position: relative;
     color: white;
+}
+
+#register {
+    height: 460px;
+}
+#register .buttons button {
+    width: 32%;
 }
 
 /* MOBILE */

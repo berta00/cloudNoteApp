@@ -1,0 +1,140 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+body {
+    height: 100vh;
+    width: 100%;
+
+    background: black;
+    
+    display: flex;
+    flex-direction: column;
+}
+
+.emailCeckBanner {
+    height: 30px;
+    width: 100%;
+    
+    background: #f9ea75;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.emailCeckBanner a {
+    width: calc(100% - 30px);
+    margin-left: 10px;
+
+    font-family: 'Roboto', sans-serif;
+    font-size: 100%;
+    font-weight: 500;
+    color: black;
+}
+.emailCeckBanner .cross {
+    width: 40px;
+    height: 30px;
+}
+.emailCeckBanner .cross div {
+    height: 12px;
+    width: 2px;
+    position: absolute;
+
+    background: black;
+}
+
+.header {
+    height: 35px;
+    width: 100%;
+
+    display: flex;
+    flex-direction: row;
+}
+.header .path {
+    margin-left: 25px;
+
+    font-family: 'Roboto', sans-serif;
+    font-size: 140%;
+    font-weight: 500;
+    color: white;
+}
+.header .path .fileType {
+    color: #717171;
+}
+
+.browseSection {
+    height: 100%;
+    width: 100%;
+}
+.browseSection .main {
+    height: calc(100vh - 35px - 30px - 40px - 40px - 10px);
+    width: calc(100% - 25px*2);
+    margin-left: 25px;
+    margin-top: 30px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.browseSection .main .leftSection {
+    height: 100%;
+    width: 20%;
+
+    background: white;
+    border-radius: 20px;
+}
+.browseSection .main .centralSection {
+    height: 100%;
+    width: calc(80% - 20px);
+    margin-left: 20px;
+
+    background: white;
+    border-radius: 20px;
+}
+
+.fileSection {
+    height: 100%;
+    width: 100%;
+}
+.fileSection .main {
+    height: calc(100vh - 35px - 30px - 40px - 40px - 10px);
+    width: calc(100% - 25px*2);
+    margin-left: 25px;
+    margin-top: 30px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.fileSection .main .leftSection {
+    height: 100%;
+    width: calc(21% - 20px);
+
+    background: white;
+    border-radius: 20px;
+}
+.fileSection .main .centralSection {
+    height: 100%;
+    width: calc(79% - 35px - 68px);
+    margin-left: 20px;
+
+    background: white;
+    border-radius: 20px;
+}
+.fileSection .main .toolDock {
+    height: auto;
+    width: 68px;
+    margin-left: 35px;
+
+    background: white;
+    border-radius: 20px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.fileSection .main .toolDock div {
+    height: 45px;
+    width: 45px;
+    margin-top: 12px;
+}
