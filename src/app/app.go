@@ -69,7 +69,8 @@ type BasicNoteStruct struct {
     crDate   string
     mfDate   string
 }
-
+//tallini
+//sesso4
 func main(){
     if DebugMode {
         fmt.Println("Setting/updating env varaible:");
@@ -158,7 +159,7 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
             email := r.FormValue("email");
             encodedPass := r.FormValue("password");
 
-            sec := r.URL.Query("sec");
+            dashSection = r.URL.Query().Get("sec");;
 
             // connect to db
             dbConnstring := DBuser + ":" + DBpass + "@tcp(" + DBaddr + ":" + DBport + ")/" + DBname;
@@ -205,7 +206,7 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
         dashData.Name = userName;
         dashData.Email = userEmail;
         dashData.EmailCk = userEmailCk;
-        dashData.Section = sec;
+        dashData.Section = dashSection;
 
         // html template
         Cwd, _ := os.Getwd();

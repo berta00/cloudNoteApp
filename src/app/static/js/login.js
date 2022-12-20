@@ -27,6 +27,7 @@ loginButton.addEventListener("click", ()=> {
 
     let emailValue = loginEmail.value;
     let pwdValue = loginPwd.value;
+    //perfavore non guardatelo grazie mille buonagiornata
     let encPwd = md5("kdabfaxjbcjkabldfasdfjlablfjbashbhakv" + pwdValue);
 
     // create form and submit
