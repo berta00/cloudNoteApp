@@ -23,9 +23,19 @@ CREATE TABLE emailConf (
 	expDate  datetime     not null,
 	done     boolean      not null default false
 );
+CREATE TABLE folder (
+	id      int           not null auto_increment primary key,
+	name    varchar(255)  not null,
+	creator varchar(255)  not null,
+	path    varchar(255)  not null,
+	crDate  timestamp     not null default current_timestamp(),
+	mfDate  timestamp     not null default current_timestamp
+);
 CREATE TABLE basicNote (
 	id       int          not null auto_increment primary key,
+	name     varchar(255) not null,
 	creator  varchar(255) not null,
+	path     varchar(255) not null,
 	content  varchar(255) not null,
 	crDate   timestamp    not null default current_timestamp(),
 	mfDate   timestamp    not null default current_timestamp()

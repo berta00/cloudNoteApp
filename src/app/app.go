@@ -35,42 +35,53 @@ var GMpass string = os.Getenv("GMAIL_PASSWORD");
 // users
 var TotalUsers int = 0;
 
+// db table struct
+type UsersStruct struct {
+    Id       int
+    Nick     string
+    Name     string
+    Email    string
+    Password string
+    EmailCk  bool
+    Admin    string
+    Date     string
+}
+type Folder struct {
+    Id      int
+    Name    string
+    Creator string
+    Path    string
+    CrDate  string
+    MfDate  string
+}
+type BasicNoteStruct struct {
+    Id       int
+    Name     string
+    Creator  string
+    Path     string
+    Content  string
+    CrDate   string
+    MfDate   string
+}
+
 // login page struct
 type loginPage struct {
-    NewAcc    bool
-    WrongCred bool
-    ConfMail  bool
-    Section   string
+    NewAcc     bool
+    WrongCred  bool
+    ConfMail   bool
+    Section    string
 }
 // dash page struct
 type dashPage struct {
-    Nick      string
-    Name      string
-    Email     string
-    EmailCk   bool
-    Section   string
+    Nick       string
+    Name       string
+    Email      string
+    EmailCk    bool
+    Section    string
+    BasicNotes []BasicNoteStruct
+    Folder     []Folder
 }
 
-// db table struct
-type UsersStruct struct {
-    id       int
-    nick     string
-    name     string
-    email    string
-    password string
-    emailCk  bool
-    admin    string
-    date     string
-}
-type BasicNoteStruct struct {
-    id       int
-    creator  string
-    content  string
-    crDate   string
-    mfDate   string
-}
-//tallini
-//sesso4
 func main(){
     if DebugMode {
         fmt.Println("Setting/updating env varaible:");
@@ -142,6 +153,7 @@ func mainRoute(w http.ResponseWriter, r *http.Request){
 }
 
 func dashRoute(w http.ResponseWriter, r *http.Request){
+    // global variables declaration
     userIsGet := false;
     userIsAuth := false;
     userNick := "";
@@ -149,6 +161,8 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
     userEmail := "";
     userEmailCk := false;
     dashSection := "";
+    var folderArr    []Folder;
+    var basicNoteArr []BasicNoteStruct;
 
     switch(r.Method){
         case "GET":
@@ -164,27 +178,57 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
             // connect to db
             dbConnstring := DBuser + ":" + DBpass + "@tcp(" + DBaddr + ":" + DBport + ")/" + DBname;
             DBConn, err := sql.Open("mysql", dbConnstring);
-            defer DBConn.Close();
-            // query the users
-            dbQuery := "select nick, name, email, password, emailConfirmed, admin from users where email='" + email + "';";
-            userQuery, err := DBConn.Query(dbQuery);
             if err != nil {
                 fmt.Print("Authentication err: ");
                 fmt.Println(err);
+            }
+            defer DBConn.Close();
+            // query the users
+            dbUserQueryStr := "select nick, name, email, password, emailConfirmed, admin from users where email='" + email + "';";
+            dbUserQuery, err1 := DBConn.Query(dbUserQueryStr);
+            if err1 != nil {
+                fmt.Print("Authentication err: ");
+                fmt.Println(err1);
             } 
             // read query
             userStructQuery := new(UsersStruct);
-            for userQuery.Next(){
-                userQuery.Scan(&userStructQuery.nick, &userStructQuery.name, &userStructQuery.email, &userStructQuery.password, &userStructQuery.emailCk, &userStructQuery.admin);
+            for dbUserQuery.Next(){
+                dbUserQuery.Scan(&userStructQuery.Nick, &userStructQuery.Name, &userStructQuery.Email, &userStructQuery.Password, &userStructQuery.EmailCk, &userStructQuery.Admin);
             }
-            if encodedPass == userStructQuery.password {
+            if encodedPass == userStructQuery.Password {
                 userIsAuth = true;
             }
+            // query the folder
+            dbFolderQueryStr := "select name, creator, path, crDate, mfDate from folder";
+            dbFolderQuery, err2 := DBConn.Query(dbFolderQueryStr);
+            if err2 != nil {
+                fmt.Print("Authentication err: ");
+                fmt.Println(err2);
+            }
+            // read query
+            folderStructQuery := new(Folder);
+            for dbFolderQuery.Next(){
+                dbFolderQuery.Scan(&folderStructQuery.Name, &folderStructQuery.Creator, &folderStructQuery.Path, &folderStructQuery.CrDate, &folderStructQuery.MfDate);
+                folderArr = append(folderArr, *folderStructQuery);
+            }
+            // query the basic notes
+            dbBasicNoteQueryStr := "select name, creator, path, content, crDate, mfDate from basicNote";
+            dbBasicNoteQuery, err2 := DBConn.Query(dbBasicNoteQueryStr);
+            if err2 != nil {
+                fmt.Print("Authentication err: ");
+                fmt.Println(err2);
+            }
+            // read query
+            basicNoteStructQuery := new(BasicNoteStruct);
+            for dbBasicNoteQuery.Next(){
+                dbBasicNoteQuery.Scan(&basicNoteStructQuery.Name, &basicNoteStructQuery.Creator, &basicNoteStructQuery.Path, &basicNoteStructQuery.Content, &basicNoteStructQuery.CrDate, &basicNoteStructQuery.MfDate);
+                basicNoteArr = append(basicNoteArr, *basicNoteStructQuery);
+            }
             
-            userNick = userStructQuery.nick;
-            userName = userStructQuery.name;
-            userEmail = userStructQuery.email;
-            userEmailCk = userStructQuery.emailCk;
+            userNick = userStructQuery.Nick;
+            userName = userStructQuery.Name;
+            userEmail = userStructQuery.Email;
+            userEmailCk = userStructQuery.EmailCk;
 
             break;
     }
@@ -198,27 +242,26 @@ func dashRoute(w http.ResponseWriter, r *http.Request){
         }
         defer DBConn.Close();
 
-        // query the users data
-
-
         dashData := new(dashPage);
         dashData.Nick = userNick;
         dashData.Name = userName;
         dashData.Email = userEmail;
         dashData.EmailCk = userEmailCk;
         dashData.Section = dashSection;
+        dashData.BasicNotes = basicNoteArr;
+        dashData.Folder = folderArr;
 
         // html template
         Cwd, _ := os.Getwd();
-        Os := runtime.GOOS
+        Os := runtime.GOOS;
         switch Os {
             case "windows":
-                template, _ := template.ParseFiles(Cwd + "\\static\\pages\\dashboard.html")
-                template.Execute(w, dashData)
+                template, _ := template.ParseFiles(Cwd + "\\static\\pages\\dashboard.html");
+                template.Execute(w, dashData);
                 break
             default:
-                template, _ := template.ParseFiles(Cwd + "/static/pages/dashboard.html")
-                template.Execute(w, dashData)
+                template, _ := template.ParseFiles(Cwd + "/static/pages/dashboard.html");
+                template.Execute(w, dashData);
         }
     } else if userIsGet {
         // redirect to home

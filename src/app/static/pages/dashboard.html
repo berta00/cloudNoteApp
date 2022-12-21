@@ -7,13 +7,13 @@
     <body>
         <div class="emailCeckBanner">
             <a>Pls, ceck your email and verify it at the link sended</a>
-            <div class="cross" onclick="emailCkBanner('hide')">
+            <div class="cross">
                 <div style="transform-origin: center; transform: translateX(20px) translateY(10px) rotate(45deg);"></div>
                 <div style="transform-origin: center; transform: translateX(20px)  translateY(10px) rotate(-45deg)"></div>
             </div>
         </div>
         <script>
-            // EMAIL CECK BANNER
+            // email ceck banner
             let emailBannerDefault = "{{.EmailCk}}";
             let emailBannerDiv = document.querySelector(".emailCeckBanner");
             emailBannerDiv.style.transform = "translateY(-30px)";
@@ -24,8 +24,22 @@
             document.querySelector(".emailCeckBanner .cross").addEventListener("click", ()=> {
                 emailBannerDiv.style.transform = "translateY(-30px)";
             });
-            // GENERAL VARIABLES
-            userNick = "{{.Nick}}";
+            // general variables
+            let userNick = "{{.Nick}}";
+            // folder
+            let folder = [];
+            let folderIndex = 0;
+            {{range .Folder}}
+            folder[folderIndex] = ["{{.Name}}", "{{.Creator}}", "{{.Path}}", "{{.CrDate}}", "{{.MfDate}}"];
+            folderIndex++;
+            {{end}}
+            // basic notes
+            let file = [];
+            let fileIndex = 0;
+            {{range .BasicNotes}}
+            file[fileIndex] = ["basicNote", "{{.Name}}", "{{.Creator}}", "{{.Path}}", "{{.Content}}", "{{.CrDate}}", "{{.MfDate}}"];
+            fileIndex++;
+            {{end}}
         </script>
         <div class="header">
             <p class="path"></p>
