@@ -48,21 +48,23 @@ function switchSection(destinationSection, fileName, fileType){
                 // file system
                 let remainingFiles = fileSystenData;
                 let preveousLayerFiles = ["/"];
+                let deletedFiles = [];
                 let layer = 0;
                 let finishedFs = false;
+
                 // loop throught all layers
-                
                 let browseFsReader = setInterval(()=>{
                     if(finishedFs){
                         clearInterval(browseFsReader);
                     } else {
+                        console.log(remainingFiles);
+                        // create element
                         for(let createI = 0; createI < remainingFiles.length; createI++){
-                            for(let prevI = 0; prevI < preveousLayerFiles; prevI++){
-                                console.log(remainingFiles[remainI][3]);
-                                console.log(preveousLayerFiles[prevI]);
-                                if(preveousLayerFiles[prevI] == remainingFiles[remainI][3]){
+                            for(let prevI = 0; prevI < preveousLayerFiles.length; prevI++){
+                                if(preveousLayerFiles[prevI] == remainingFiles[createI][3]){
+                                    // choose icon
                                     let icon = "";
-                                    switch(remainingFiles[remainI][0]){
+                                    switch(remainingFiles[createI][0]){
                                         case "folder":
                                             icon = "/static/icons/browseSection-listFolder.svg";
                                             break;
@@ -70,26 +72,27 @@ function switchSection(destinationSection, fileName, fileType){
                                             icon = "/static/icons/browseSection-listFile.svg";
                                             break;
                                     }
+                                    // generate element
                                     let size = "34 byte";
                                     if(preveousLayerFiles[prevI] == "/"){
-                                        newBrowseSectionRow(browseSectionTable, icon, remainingFiles[remainI][1], remainingFiles[remainI][2], remainingFiles[remainI][4], remainingFiles[remainI][5], size);
+                                        newBrowseSectionRow(browseSectionTable, icon, remainingFiles[createI][1], remainingFiles[createI][2], remainingFiles[createI][4], remainingFiles[createI][5], size);
                                     } else {
-                                        newBrowseSectionRow(browseSectionTable.querySelector(preveousLayerFiles[prevI]), icon, remainingFiles[remainI][1], remainingFiles[remainI][2], remainingFiles[remainI][4], remainingFiles[remainI][5], size);
+                                        newBrowseSectionRow(browseSectionTable.querySelector(preveousLayerFiles[prevI]), icon, remainingFiles[createI][1], remainingFiles[createI][2], remainingFiles[createI][4], remainingFiles[createI][5], size);
                                     }
+                                    // push created element in deleted
+                                    deletedFiles.push(remainingFiles[createI]);
+                                    remainingFiles.splice(createI, 1);
                                 }
                             }
                         }
-                        for(let remainI = 0; remainI < remainingFiles.length; remainI++){
-                            for(let prevI = 0; prevI < preveousLayerFiles.length; prevI++){
-                                if(preveousLayerFiles[prevI] == remainingFiles[remainI][1]){
-                                    preveousLayerFiles.push(remainingFiles.splice(remainI, 1));
-                                } else if(preveousLayerFiles[prevI] == "/"){
-                                    preveousLayerFiles.push(remainingFiles.splice(remainI, 1));
-                                }
-                            }
+                        // delete element from remainingFiles and put it in preveous
+                        for(let remainI = 0; remainI < deletedFiles.length; remainI++){
+                            preveousLayerFiles.push(deletedFiles[remainI][1]);
                         }
+                        // reset arrays
                         preveousLayerFiles = [];
-
+                        deletedFiles = [];
+                        // loop exit contition
                         if(remainingFiles.length <= 0){
                             finishedFs = true;
                         }
