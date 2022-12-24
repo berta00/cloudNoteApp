@@ -45,75 +45,57 @@ function switchSection(destinationSection, fileName, fileType){
 
                 browseSectionTable.appendChild(rowSeparationLine);
                 
-                // fs deep
-                let remainingFolder = folder;
-                let remainingDeletedFolder = [];
-                let previousFolders = 1;
-                let previousFolders1 = ["/"];
-                let previousFolders2 = [];
-                let remainingFile = file;
-                let remainingDeletedFile = [];
-                let deepness = 0;
+                // file system
+                let remainingFiles = fileSystenData;
+                let preveousLayerFiles = ["/"];
+                let layer = 0;
                 let finishedFs = false;
-                while(finishedFs == false){
-                    console.log(remainingFolder);
-                    // create folder
-                    let folderRowIndex = 0;
-                    let folderRowInterval = setInterval(()=>{
-                        if(folderRowIndex >= remainingFolder.length){
-                            clearInterval(folderRowInterval);
-                        } else {
-                            for(let previousIndex = 0; previousIndex < previousFolders1.length + previousFolders2.length; previousIndex++){
-                                if(remainingFolder[folderRowIndex][2] == previousFolders1[previousIndex] || remainingFolder[folderRowIndex][2] == previousFolders2[previousIndex]){
-                                    let folderSize = "18 item";
-                                    if(previousFolders1[previousIndex] == "/" || previousFolders2[previousIndex] == "/"){
-                                        newBrowseSectionRow(browseSectionTable, "/static/icons/browseSection-listFolder.svg", remainingFolder[folderRowIndex][0], remainingFolder[folderRowIndex][1], remainingFolder[folderRowIndex][3], remainingFolder[folderRowIndex][4], folderSize);
+                // loop throught all layers
+                
+                let browseFsReader = setInterval(()=>{
+                    if(finishedFs){
+                        clearInterval(browseFsReader);
+                    } else {
+                        for(let createI = 0; createI < remainingFiles.length; createI++){
+                            for(let prevI = 0; prevI < preveousLayerFiles; prevI++){
+                                console.log(remainingFiles[remainI][3]);
+                                console.log(preveousLayerFiles[prevI]);
+                                if(preveousLayerFiles[prevI] == remainingFiles[remainI][3]){
+                                    let icon = "";
+                                    switch(remainingFiles[remainI][0]){
+                                        case "folder":
+                                            icon = "/static/icons/browseSection-listFolder.svg";
+                                            break;
+                                        case "basicNote":
+                                            icon = "/static/icons/browseSection-listFile.svg";
+                                            break;
+                                    }
+                                    let size = "34 byte";
+                                    if(preveousLayerFiles[prevI] == "/"){
+                                        newBrowseSectionRow(browseSectionTable, icon, remainingFiles[remainI][1], remainingFiles[remainI][2], remainingFiles[remainI][4], remainingFiles[remainI][5], size);
                                     } else {
-                                        newBrowseSectionRow(browseSectionTable.querySelector("." + previousFolders[previousIndex]), "/static/icon/browseSection-listFolder.svg", remainingFolder[folderRowIndex][0], remainingFolder[folderRowIndex][1], remainingFolder[folderRowIndex][3], remainingFolder[folderRowIndex][4], folderSize);
+                                        newBrowseSectionRow(browseSectionTable.querySelector(preveousLayerFiles[prevI]), icon, remainingFiles[remainI][1], remainingFiles[remainI][2], remainingFiles[remainI][4], remainingFiles[remainI][5], size);
                                     }
-                                    switch(previousFolders){
-                                        case 1:
-                                            previousFolders2 = [];
-                                            previousFolders1.push(remainingFolder[folderRowIndex]);
-                                            previousFolders = 2;
-                                        case 2:
-                                            previousFolders1 = [];
-                                            previousFolders2.push(remainingFolder[folderRowIndex]);
-                                            previousFolders = 1;
-                                    }
-                                    remainingDeletedFolder.push(remainingFolder.splice(folderRowIndex, 1));
                                 }
                             }
                         }
-                        folderRowIndex++;
-                    }, 50);
-                    console.log(remainingFolder);
-                    // create file
-                    /*
-                    let fileRowIndex = 0;
-                    let fileRowInterval = setInterval(()=>{
-                        if(fileRowIndex >= remainingFile.length){
-                            clearInterval(fileRowInterval);
-                        } else {
-                            for(let previousIndex = 0; previousIndex < previousFolders.length; previousIndex++){
-                                if(previousFolders[fileRowIndex][3] == previousFolders[previousIndex]){
-                                    let fileSize = "34 byte";
-                                    if(previousFolders[fileRowIndex] == "/"){
-                                        newBrowseSectionRow(browseSectionTable, "/static/icon/browseSection-listFile.svg", remainingFile[fileRowIndex][1], remainingFile[fileRowIndex][2], remainingFile[fileRowIndex][4], remainingFile[fileRowIndex][5], fileSize);
-                                    } else {
-                                        newBrowseSectionRow(browseSectionTable.querySelector("." + previousFolders[fileRowIndex]), "/static/icon/browseSection-listFile.svg", remainingFile[fileRowIndex][1], remainingFile[fileRowIndex][2], remainingFile[fileRowIndex][4], remainingFile[fileRowIndex][5], fileSize);
-                                    }
-                                    remainingFile.splice(fileRowIndex, 1);
+                        for(let remainI = 0; remainI < remainingFiles.length; remainI++){
+                            for(let prevI = 0; prevI < preveousLayerFiles.length; prevI++){
+                                if(preveousLayerFiles[prevI] == remainingFiles[remainI][1]){
+                                    preveousLayerFiles.push(remainingFiles.splice(remainI, 1));
+                                } else if(preveousLayerFiles[prevI] == "/"){
+                                    preveousLayerFiles.push(remainingFiles.splice(remainI, 1));
                                 }
                             }
                         }
-                        fileRowIndex++;
-                    }, 50);*/
-                    if(remainingDeletedFolder.length >= folder.length){
-                        finishedFs = true;
+                        preveousLayerFiles = [];
+
+                        if(remainingFiles.length <= 0){
+                            finishedFs = true;
+                        }
+                        layer++;
                     }
-                    deepness++;
-                }
+                }, 50);
             }
             firstStartBrowseSection = false;
             break;

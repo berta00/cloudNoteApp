@@ -30,9 +30,10 @@
             let folder = [];
             let folderIndex = 0;
             {{range .Folder}}
-            folder[folderIndex] = ["{{.Name}}", "{{.Creator}}", "{{.Path}}", "{{.CrDate}}", "{{.MfDate}}"];
+            folder[folderIndex] = ["file", "{{.Name}}", "{{.Creator}}", "{{.Path}}", "{{.CrDate}}", "{{.MfDate}}"];
             folderIndex++;
             {{end}}
+            console.log(folder);
             // basic notes
             let file = [];
             let fileIndex = 0;
@@ -40,6 +41,12 @@
             file[fileIndex] = ["basicNote", "{{.Name}}", "{{.Creator}}", "{{.Path}}", "{{.Content}}", "{{.CrDate}}", "{{.MfDate}}"];
             fileIndex++;
             {{end}}
+            // attach files
+            console.log(file);
+            let fileSystenData = folder;
+            for(let arrIndex = 0; arrIndex < file.length; arrIndex++){
+                fileSystenData.push(file[arrIndex]);
+            }
         </script>
         <div class="header">
             <p class="path"></p>
