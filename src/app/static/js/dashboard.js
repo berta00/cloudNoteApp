@@ -47,9 +47,6 @@ function switchSection(destinationSection, fileName, fileType){
                 
                 // file system
                 let remainingFiles = fileSystenData;
-                let preveousLayerFiles = ["/"];
-                let deletedFiles = [];
-                let layer = 0;
                 let finishedFs = false;
 
                 // loop throught all layers
@@ -57,46 +54,27 @@ function switchSection(destinationSection, fileName, fileType){
                     if(finishedFs){
                         clearInterval(browseFsReader);
                     } else {
-                        console.log(remainingFiles);
-                        // create element
-                        for(let createI = 0; createI < remainingFiles.length; createI++){
-                            for(let prevI = 0; prevI < preveousLayerFiles.length; prevI++){
-                                if(preveousLayerFiles[prevI] == remainingFiles[createI][3]){
-                                    // choose icon
-                                    let icon = "";
-                                    switch(remainingFiles[createI][0]){
-                                        case "folder":
-                                            icon = "/static/icons/browseSection-listFolder.svg";
-                                            break;
-                                        case "basicNote":
-                                            icon = "/static/icons/browseSection-listFile.svg";
-                                            break;
-                                    }
-                                    // generate element
-                                    let size = "34 byte";
-                                    if(preveousLayerFiles[prevI] == "/"){
-                                        newBrowseSectionRow(browseSectionTable, icon, remainingFiles[createI][1], remainingFiles[createI][2], remainingFiles[createI][4], remainingFiles[createI][5], size);
-                                    } else {
-                                        newBrowseSectionRow(browseSectionTable.querySelector(preveousLayerFiles[prevI]), icon, remainingFiles[createI][1], remainingFiles[createI][2], remainingFiles[createI][4], remainingFiles[createI][5], size);
-                                    }
-                                    // push created element in deleted
-                                    deletedFiles.push(remainingFiles[createI]);
-                                    remainingFiles.splice(createI, 1);
+                        for(let fileI = 0; fileI < remainingFiles.length; fileI++){
+                            if(remainingFiles[fileI][3] == "/" && remainingFiles[fileI][0] != "folder"){ // second condition is temporary
+                                let icon = "", size = "";
+                                switch(remainingFiles[fileI][0]){
+                                    case "folder":
+                                        size = "/";
+                                        icon = "/static/icons/browseSection-listFolder.svg";
+                                        break;
+                                    case "basicNote":
+                                        size = remainingFiles[fileI][6].length; // a char is made of 1 byte
+                                        size += " byte";
+                                        icon = "/static/icons/browseSection-listFile.svg";
+                                        break;
                                 }
+                                newBrowseSectionRow(browseSectionTable, icon, remainingFiles[fileI][1], remainingFiles[fileI][2], remainingFiles[fileI][4], remainingFiles[fileI][5], size)
+                                remainingFiles.splice(fileI, 1);
                             }
                         }
-                        // delete element from remainingFiles and put it in preveous
-                        for(let remainI = 0; remainI < deletedFiles.length; remainI++){
-                            preveousLayerFiles.push(deletedFiles[remainI][1]);
-                        }
-                        // reset arrays
-                        preveousLayerFiles = [];
-                        deletedFiles = [];
-                        // loop exit contition
                         if(remainingFiles.length <= 0){
                             finishedFs = true;
                         }
-                        layer++;
                     }
                 }, 50);
             }
@@ -160,6 +138,8 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowDiv.style.display = "flex";
     rowDiv.style.flexDirection = "row";
     rowDiv.style.alignItems = "center";
+    rowDiv.style.paddingTop = "4px";
+    rowDiv.style.paddingBottom = "4px";
     rowDiv.className = name;
     // icon
     if(icon == ""){
@@ -180,7 +160,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowName.style.fontSize = "100%";
     rowName.style.color = "#000000";
     rowName.style.marginLeft = "1.4%";
-    rowName.style.width = "15%";
+    rowName.style.width = "20%";
     rowDiv.appendChild(rowName);
     // creator
     let rowCreator = document.createElement("a");
@@ -188,7 +168,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowCreator.style.fontFamily = "'Roboto', sans-serif";
     rowCreator.style.fontSize = "100%";
     rowCreator.style.color = "#000000";
-    rowCreator.style.width = "30%";
+    rowCreator.style.width = "20%";
     rowDiv.appendChild(rowCreator);
     // creation
     let rowCreation = document.createElement("a");
@@ -196,7 +176,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowCreation.style.fontFamily = "'Roboto', sans-serif";
     rowCreation.style.fontSize = "100%";
     rowCreation.style.color = "#000000";
-    rowCreation.style.width = "20%";
+    rowCreation.style.width = "24%";
     rowDiv.appendChild(rowCreation);
     // last modify
     let rowLastModify = document.createElement("a");
@@ -204,7 +184,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowLastModify.style.fontFamily = "'Roboto', sans-serif";
     rowLastModify.style.fontSize = "100%";
     rowLastModify.style.color = "#000000";
-    rowLastModify.style.width = "20%";
+    rowLastModify.style.width = "25%";
     rowDiv.appendChild(rowLastModify);
     // size
     let rowSize = document.createElement("a");
@@ -216,4 +196,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowDiv.appendChild(rowSize);
 
     parent.appendChild(rowDiv);
+}
+function browseSectionRowClick(rowElement){
+    rowElement.style.background = ""
 }
