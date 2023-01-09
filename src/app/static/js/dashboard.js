@@ -46,7 +46,7 @@ function switchSection(destinationSection, fileName, fileType){
                 browseSectionTable.appendChild(rowSeparationLine);
                 
                 // file system
-                let remainingFiles = fileSystenData;
+                let remainingFiles = fileSystemData;
                 let finishedFs = false;
 
                 // loop throught all layers
@@ -81,13 +81,25 @@ function switchSection(destinationSection, fileName, fileType){
             firstStartBrowseSection = false;
             break;
         case "noteSection":
+            // file variables
+            let fileRawContent = "";
+            let fileLines = [];
+            // parse file
+            if(fileType = "basicNote"){
+                for(let basicNoteFileI = 0; basicNoteFileI < basicNoteFiles.length; basicNoteFileI++){
+                    if(basicNoteFiles[basicNoteFileI][1] == fileName){
+                        fileRawContent = basicNoteFiles[basicNoteFileI][6];
+                    }
+                }
+            }
             // header text
             titlePath.innerHTML = userNick + " / " + fileName + " <a class='fileType'>[" + fileType + "]</a>";
             // main sections
             browseMainDiv.style.display = "none";
             noteMainDiv.style.display = "flex";
-            // animate dock toolbox
+            // startup animation
             if(firstStartNoteSection){
+                // dock
                 let iconIndex = 0;
                 let dockIconAnimationInterval = setInterval(()=>{
                     if(iconIndex >= noteToolDockDivs.length){
@@ -97,6 +109,17 @@ function switchSection(destinationSection, fileName, fileType){
                     }
                     iconIndex++
                 }, 50);
+                // text
+                let currentLine = ""; 
+                for(int textLineI = 0; textLineI < fileRawContent.length; textLineI++){
+                    if(noteText[textLineI] == "\n"){
+                        // new line
+                        noteTextLines.push(currentLine);
+                        currentLine = "";
+                    } else {
+                        currentLine += fileRawContent[textLineI];
+                    }
+                }
             }
             // initialize the tool functions
             if(firstStartNoteSection){
@@ -118,7 +141,7 @@ function switchSection(destinationSection, fileName, fileType){
                                     noteToolDockDivs[borderIndex].style.outlineOffset = "0";
                                 }
                             }
-                            // functioning
+                            // tool functioning
 
                         });
                         toolIndex++;
