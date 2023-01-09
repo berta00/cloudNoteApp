@@ -34,14 +34,14 @@
             folderIndex++;
             {{end}}
             // basic notes
-            let file = [];
+            let basicNoteFiles = [];
             let fileIndex = 0;
             {{range .BasicNotes}}
-            file[fileIndex] = ["basicNote", "{{.Name}}", "{{.Creator}}", "{{.Path}}", "{{.CrDate}}", "{{.MfDate}}", "{{.Content}}"];
+            basicNoteFiles[fileIndex] = ["basicNote", "{{.Name}}", "{{.Creator}}", "{{.Path}}", "{{.CrDate}}", "{{.MfDate}}", "{{.Content}}"];
             fileIndex++;
             {{end}}
-            // attach files (not now)
-            let fileSystenData = file;
+            // attach files and other file type (not now)
+            let fileSystemData = basicNoteFiles;
         </script>
         <div class="header">
             <p class="path"></p>
