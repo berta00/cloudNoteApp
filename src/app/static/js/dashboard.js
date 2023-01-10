@@ -1,6 +1,14 @@
 // header variables
 let titlePath = document.querySelector(".header .path");
-titlePath.innerHTML = userNick + " /";
+let nickPath = document.createElement("a");
+nickPath.style.cursor = "default";
+nickPath.addEventListener("click", ()=>{
+    switchSection("browseSection");
+});
+nickPath.innerHTML = "<a>" + userNick + "</a>";
+titlePath.appendChild(nickPath);
+let filePath = document.createElement("a");
+titlePath.appendChild(filePath);
 // browse section variables
 let browseMainDiv = document.querySelector(".browseMainSection");
 // file section variables
@@ -14,11 +22,11 @@ let firstStartNoteSection = true;
 switchSection("browseSection");
 
 // section manage
-function switchSection(destinationSection, fileName, fileType){
+function switchSection(destinationSection, fileData){
     switch(destinationSection){
         case "browseSection":
             // header text
-            titlePath.innerHTML = userNick + " /";
+            filePath.innerHTML = " / ";
             // main sections
             browseMainDiv.style.display = "flex";
             noteMainDiv.style.display = "none";
@@ -68,7 +76,7 @@ function switchSection(destinationSection, fileName, fileType){
                                         icon = "/static/icons/browseSection-listFile.svg";
                                         break;
                                 }
-                                newBrowseSectionRow(browseSectionTable, icon, remainingFiles[fileI][1], remainingFiles[fileI][2], remainingFiles[fileI][4], remainingFiles[fileI][5], size)
+                                newBrowseSectionRow(browseSectionTable, icon, remainingFiles[fileI][1], remainingFiles[fileI][2], remainingFiles[fileI][4], remainingFiles[fileI][5], size, remainingFiles[fileI][0])
                                 remainingFiles.splice(fileI, 1);
                             }
                         }
@@ -82,22 +90,18 @@ function switchSection(destinationSection, fileName, fileType){
             break;
         case "noteSection":
             // file variables
-            let fileRawContent = "";
-            let fileLines = [];
-            // parse file
-            if(fileType = "basicNote"){
-                for(let basicNoteFileI = 0; basicNoteFileI < basicNoteFiles.length; basicNoteFileI++){
-                    if(basicNoteFiles[basicNoteFileI][1] == fileName){
-                        fileRawContent = basicNoteFiles[basicNoteFileI][6];
-                    }
-                }
-            }
+            let fileType = fileData[0];
+            let fileName = fileData[1];
+            let fileCreator = fileData[2];
+            let fileCrDate = fileData[4];
+            let fileMfDate = fileData[5];
+            let fileRawContent = fileData[6];
             // header text
-            titlePath.innerHTML = userNick + " / " + fileName + " <a class='fileType'>[" + fileType + "]</a>";
+            filePath.innerHTML = " / " + fileName + " <a class='fileType'>[" + fileType + "]</a>";
             // main sections
             browseMainDiv.style.display = "none";
             noteMainDiv.style.display = "flex";
-            // startup animation
+            // startup tool animation
             if(firstStartNoteSection){
                 // dock
                 let iconIndex = 0;
@@ -109,18 +113,11 @@ function switchSection(destinationSection, fileName, fileType){
                     }
                     iconIndex++
                 }, 50);
-                // text
-                let currentLine = ""; 
-                for(int textLineI = 0; textLineI < fileRawContent.length; textLineI++){
-                    if(noteText[textLineI] == "\n"){
-                        // new line
-                        noteTextLines.push(currentLine);
-                        currentLine = "";
-                    } else {
-                        currentLine += fileRawContent[textLineI];
-                    }
-                }
             }
+            // initialize text box
+            let inputDiv = createInputSection(document.querySelector(".noteMainSection .main .centralSection"));
+            // add text
+            inputDiv.innerHTML = fileRawContent;
             // initialize the tool functions
             if(firstStartNoteSection){
                 let toolIndex = 0;
@@ -153,7 +150,26 @@ function switchSection(destinationSection, fileName, fileType){
     }
 }
 
-function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, size){
+function createInputSection(parent){
+    // input main div
+    let inputMainDiv = document.createElement("div");
+    inputMainDiv.style.background = "trasparent";
+    inputMainDiv.style.height = "calc(100% - 4% * 2)";
+    inputMainDiv.style.width = "calc(100% - 5% * 2)";
+    inputMainDiv.style.borderRadius = "20px";
+    inputMainDiv.style.padding = "4%";
+
+    let inputMainText = document.createElement("p");
+    inputMainText.style.color = "black";
+    inputMainText.style.fontSize = "110%";
+    inputMainText.style.fontFamily = "'Roboto', sans-serif";
+    inputMainDiv.appendChild(inputMainText);
+
+    parent.appendChild(inputMainDiv);
+    return inputMainText;
+}
+
+function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, size, type){
     // row div
     let rowDiv = document.createElement("div");
     rowDiv.style.height = "auto";
@@ -163,6 +179,8 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowDiv.style.alignItems = "center";
     rowDiv.style.paddingTop = "4px";
     rowDiv.style.paddingBottom = "4px";
+    rowDiv.style.borderRadius = "2px";
+    rowDiv.style.transition = "0.1s";
     rowDiv.className = name;
     // icon
     if(icon == ""){
@@ -177,14 +195,34 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
         rowDiv.appendChild(rowIcon);
     }
     // name
-    let rowName = document.createElement("a");
-    rowName.innerHTML = name;
+    let rowName = document.createElement("input");
+    rowName.value = name;
     rowName.style.fontFamily = "'Roboto', sans-serif";
     rowName.style.fontSize = "100%";
     rowName.style.color = "#000000";
     rowName.style.marginLeft = "1.4%";
-    rowName.style.width = "20%";
+    rowName.style.zIndex = "2";
+    rowName.style.width = "calc(20% - 20px)";
+    rowName.style.border = "0 solid";
     rowDiv.appendChild(rowName);
+    // name changes
+    let rowNameChange = document.createElement("div");
+    rowNameChange.style.height = "20px";
+    rowNameChange.style.width = "40px";
+    rowNameChange.style.marginLeft = "5px";
+    rowNameChange.style.display = "flex";
+    rowNameChange.style.paddingBottom = "2px";
+    rowNameChange.style.alignItems = "center";
+    rowNameChange.style.justifyContent = "center";
+    rowNameChange.style.fontFamily = "'Roboto', sans-serif";
+    rowNameChange.style.fontSize = "90%";
+    rowNameChange.style.background = "#000000";
+    rowNameChange.style.color = "#ffffff";
+    rowNameChange.style.display = "none";
+    rowNameChange.innerHTML = "save";
+    if(type != null){
+        rowDiv.appendChild(rowNameChange);
+    }
     // creator
     let rowCreator = document.createElement("a");
     rowCreator.innerHTML = creator;
@@ -192,6 +230,8 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowCreator.style.fontSize = "100%";
     rowCreator.style.color = "#000000";
     rowCreator.style.width = "20%";
+    rowCreator.style.marginLeft = "20px";
+    rowCreator.style.cursor = "default";
     rowDiv.appendChild(rowCreator);
     // creation
     let rowCreation = document.createElement("a");
@@ -200,6 +240,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowCreation.style.fontSize = "100%";
     rowCreation.style.color = "#000000";
     rowCreation.style.width = "24%";
+    rowCreation.style.cursor = "default";
     rowDiv.appendChild(rowCreation);
     // last modify
     let rowLastModify = document.createElement("a");
@@ -208,6 +249,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowLastModify.style.fontSize = "100%";
     rowLastModify.style.color = "#000000";
     rowLastModify.style.width = "25%";
+    rowLastModify.style.cursor = "default";
     rowDiv.appendChild(rowLastModify);
     // size
     let rowSize = document.createElement("a");
@@ -215,11 +257,43 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowSize.style.fontFamily = "'Roboto', sans-serif";
     rowSize.style.fontSize = "100%";
     rowSize.style.color = "#000000";
-    rowSize.style.width = "auto%";
+    rowSize.style.width = "auto";
+    rowSize.style.cursor = "default";
     rowDiv.appendChild(rowSize);
-
+    // append row to table
     parent.appendChild(rowDiv);
-}
-function browseSectionRowClick(rowElement){
-    rowElement.style.background = ""
+    // click on row
+    if(type != null){
+        // get right file data arr
+        let fileInfo = window.basicNoteFiles;
+        let actualFile = [];
+        for(let fileI = 0; fileI < fileInfo.length; fileI++){
+            if(fileInfo[fileI][1] === name && fileInfo[fileI][2] === creator){
+                actualFile = fileInfo[fileI];
+            }
+        }
+        // click outside
+        document.querySelector(".browseMainSection .main .centralSection").addEventListener("click", (e)=>{
+            if(e.target !== rowName){
+                rowName.style.border = "0 solid";
+                rowName.style.width = "calc(20% - 20px)";
+                rowNameChange.style.display = "none";
+            }
+        });
+        rowDiv.addEventListener("mouseover", ()=>{
+            rowDiv.style.background = "#e6e6e6";
+        });
+        rowDiv.addEventListener("mouseout", ()=>{
+            rowDiv.style.background = "transparent";
+        });
+        rowDiv.addEventListener("click", (e)=>{
+            if(e.target === rowName || e.target === rowNameChange){
+                rowNameChange.style.display = "flex";
+                rowName.style.width = "calc(20% - 20px - 2px - 45px)";
+                rowName.style.border = "1px solid black";
+            } else {
+                switchSection("noteSection", actualFile);
+            }
+        });
+    }
 }
