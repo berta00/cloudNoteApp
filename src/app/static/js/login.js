@@ -13,6 +13,18 @@ let registerButton = registerMain.querySelector("div button");
 let signInText = document.querySelector("#login .buttons a");
 let logInText = document.querySelector("#register .buttons a");
 
+// theme and favicon
+let browserDarkTheme = window.matchMedia("(prefers-color-scheme: dark)");
+let browserFavIcon = document.createElement("link");
+browserFavIcon.rel = "icon";
+browserFavIcon.type = "image/x-icon";
+if(browserDarkTheme.matches){
+    browserFavIcon.href = "/static/icons/logoSmallLight.svg"
+} else {
+    browserFavIcon.href = "/static/icons/logoSmallDark.svg"
+}
+document.querySelector("head").appendChild(browserFavIcon);
+
 if(section == "2"){
     loginMain.style.display = "none";
     registerMain.style.display = "flex";

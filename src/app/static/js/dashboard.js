@@ -18,8 +18,21 @@ let noteToolDockDivs = document.querySelectorAll(".noteMainSection .main .toolDo
 let noteToolDockList = ["marker", "txtColor", "txtSize", "txtFont", "txtBold", "txtItalic", "txtUnderline", "txtHeading", "txtNoStyle", "txtLink", "txtAlign", "txtList"];
 let firstStartBrowseSection = true;
 let firstStartNoteSection = true;
+// change queue
+let fileChangesQueue = {};
 // default section
 switchSection("browseSection");
+// theme and favicon
+let browserDarkTheme = window.matchMedia("(prefers-color-scheme: dark)");
+let browserFavIcon = document.createElement("link");
+browserFavIcon.rel = "icon";
+browserFavIcon.type = "image/x-icon";
+if(browserDarkTheme.matches){
+    browserFavIcon.href = "/static/icons/logoSmallLight.svg"
+} else {
+    browserFavIcon.href = "/static/icons/logoSmallDark.svg"
+}
+document.querySelector("head").appendChild(browserFavIcon);
 
 // section manage
 function switchSection(destinationSection, fileData){
@@ -196,16 +209,22 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     }
     // name
     let rowName = document.createElement("input");
-    rowName.value = name;
+    if(type != null){
+        rowName.value = name;
+    } else {
+        rowName.value = name;
+        rowName.readonly = true;
+    }
     rowName.style.fontFamily = "'Roboto', sans-serif";
     rowName.style.fontSize = "100%";
     rowName.style.color = "#000000";
     rowName.style.marginLeft = "1.4%";
     rowName.style.zIndex = "2";
-    rowName.style.width = "calc(20% - 20px)";
+    rowName.style.padding = "2px";
+    rowName.style.width = "calc(20% - 20px - 4px)";
     rowName.style.border = "0 solid";
     rowDiv.appendChild(rowName);
-    // name changes
+    // name change
     let rowNameChange = document.createElement("div");
     rowNameChange.style.height = "20px";
     rowNameChange.style.width = "40px";
@@ -262,7 +281,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowDiv.appendChild(rowSize);
     // append row to table
     parent.appendChild(rowDiv);
-    // click on row
+    // clicks on row
     if(type != null){
         // get right file data arr
         let fileInfo = window.basicNoteFiles;
@@ -276,23 +295,33 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
         document.querySelector(".browseMainSection .main .centralSection").addEventListener("click", (e)=>{
             if(e.target !== rowName){
                 rowName.style.border = "0 solid";
-                rowName.style.width = "calc(20% - 20px)";
+                rowName.style.width = "calc(20% - 20px - 4px)";
                 rowNameChange.style.display = "none";
             }
         });
+        // row hover
         rowDiv.addEventListener("mouseover", ()=>{
             rowDiv.style.background = "#e6e6e6";
         });
         rowDiv.addEventListener("mouseout", ()=>{
             rowDiv.style.background = "transparent";
         });
+        // row click and name click
         rowDiv.addEventListener("click", (e)=>{
             if(e.target === rowName || e.target === rowNameChange){
                 rowNameChange.style.display = "flex";
-                rowName.style.width = "calc(20% - 20px - 2px - 45px)";
+                rowName.style.width = "calc(20% - 20px - 6px - 45px)";
                 rowName.style.border = "1px solid black";
             } else {
                 switchSection("noteSection", actualFile);
+            }
+        });
+        // name save button
+        let oldName = name;
+        rowNameChange.addEventListener("click", ()=>{
+            if(rowName.value != oldName){
+
+                oldName = rowName.value;
             }
         });
     }
