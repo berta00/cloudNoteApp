@@ -71,31 +71,40 @@ function switchSection(destinationSection, fileData){
                 let finishedFs = false;
 
                 // loop throught all layers
+                let fileI = 0;
                 let browseFsReader = setInterval(()=>{
-                    if(finishedFs){
+                    if(fileI >= remainingFiles.length){
                         clearInterval(browseFsReader);
                     } else {
-                        for(let fileI = 0; fileI < remainingFiles.length; fileI++){
-                            if(remainingFiles[fileI][3] == "/" && remainingFiles[fileI][0] != "folder"){ // second condition is temporary
-                                let icon = "", size = "";
-                                switch(remainingFiles[fileI][0]){
-                                    case "folder":
-                                        size = "/";
-                                        icon = "/static/icons/browseSection-listFolder.svg";
-                                        break;
-                                    case "basicNote":
-                                        size = remainingFiles[fileI][6].length; // a char is made of 1 byte
-                                        size += " byte";
-                                        icon = "/static/icons/browseSection-listFile.svg";
-                                        break;
-                                }
-                                newBrowseSectionRow(browseSectionTable, icon, remainingFiles[fileI][1], remainingFiles[fileI][2], remainingFiles[fileI][4], remainingFiles[fileI][5], size, remainingFiles[fileI][0])
-                                remainingFiles.splice(fileI, 1);
+                        if(remainingFiles[fileI][3] == "/" && remainingFiles[fileI][0] != "folder"){ // second condition is temporary
+                            let icon = "", size = "";
+                            switch(remainingFiles[fileI][0]){
+                                case "folder":
+                                    size = "/";
+                                    icon = "/static/icons/browseSection-listFolder.svg";
+                                    break;
+                                case "basicNote":
+                                    size = remainingFiles[fileI][6].length; // a char is made of 1 byte
+                                    size += " byte";
+                                    icon = "/static/icons/browseSection-listFile.svg";
+                                    break;
                             }
+                            let currentRow = newBrowseSectionRow(browseSectionTable, icon, remainingFiles[fileI][1], remainingFiles[fileI][2], remainingFiles[fileI][4], remainingFiles[fileI][5], size, remainingFiles[fileI][0]);
+                            remainingFiles.splice(fileI, 1);
+
+                            // file animaion
+                            let finalName = "";
+                            for(let charI = 0; charI < remainingFiles[fileI][1].length; charI++){
+                                if(remainingFiles[fileI][1][charI] == " "){
+                                    finalName += ".";
+                                } else {
+                                    finalName += remainingFiles[fileI][1][charI];
+                                }
+                            }
+                            console.log(currentRow.style.opacity);
+                            currentRow.style.opacity = "1";
                         }
-                        if(remainingFiles.length <= 0){
-                            finishedFs = true;
-                        }
+                        fileI++;
                     }
                 }, 50);
             }
@@ -193,8 +202,11 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowDiv.style.paddingTop = "4px";
     rowDiv.style.paddingBottom = "4px";
     rowDiv.style.borderRadius = "2px";
-    rowDiv.style.transition = "0.1s";
-    rowDiv.className = name;
+    if(type != null){  // for the start animation
+        rowDiv.style.opacity = "0";
+        rowDiv.className = name;
+    }
+    rowDiv.style.transition = "0.05s";
     // icon
     if(icon == ""){
         let rowIcon = document.createElement("div");
@@ -213,7 +225,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
         rowName.value = name;
     } else {
         rowName.value = name;
-        rowName.readonly = true;
+        rowName.readOnly = true;
     }
     rowName.style.fontFamily = "'Roboto', sans-serif";
     rowName.style.fontSize = "100%";
@@ -221,6 +233,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowName.style.marginLeft = "1.4%";
     rowName.style.zIndex = "2";
     rowName.style.padding = "2px";
+    rowName.style.marginLeft = "1px";
     rowName.style.width = "calc(20% - 20px - 4px)";
     rowName.style.border = "0 solid";
     rowDiv.appendChild(rowName);
@@ -238,7 +251,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
     rowNameChange.style.background = "#000000";
     rowNameChange.style.color = "#ffffff";
     rowNameChange.style.display = "none";
-    rowNameChange.innerHTML = "save";
+    rowNameChange.innerHTML = '<a style="cursor: ' + "default" + '">save</a>';
     if(type != null){
         rowDiv.appendChild(rowNameChange);
     }
@@ -296,6 +309,7 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
             if(e.target !== rowName){
                 rowName.style.border = "0 solid";
                 rowName.style.width = "calc(20% - 20px - 4px)";
+                rowName.style.marginLeft = "1px";
                 rowNameChange.style.display = "none";
             }
         });
@@ -310,7 +324,8 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
         rowDiv.addEventListener("click", (e)=>{
             if(e.target === rowName || e.target === rowNameChange){
                 rowNameChange.style.display = "flex";
-                rowName.style.width = "calc(20% - 20px - 6px - 45px)";
+                rowName.style.width = "calc(20% - 20px - 5px - 45px)";
+                rowName.style.marginLeft = "0px";
                 rowName.style.border = "1px solid black";
             } else {
                 switchSection("noteSection", actualFile);
@@ -324,5 +339,6 @@ function newBrowseSectionRow(parent, icon, name, creator, creation, lastModify, 
                 oldName = rowName.value;
             }
         });
+        return rowDiv;
     }
 }
